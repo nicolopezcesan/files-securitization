@@ -1,73 +1,157 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
+<p align="center" style="border-radius:5px">
+  <a  href="http://ayi.group/" target="blank"><img style="padding:8px " src="https://ayi.group/wp-content/uploads/2020/12/ayi-logo-azul.png" width="200" alt="Nest Logo" /></a>
+  <a href="http://nestjs.com/" target="blank"><img style="margin-left:50px" src="https://nestjs.com/img/logo-small.svg" width="50" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# Instalación
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Installation
+## 1 - Instalar dependecias
 
 ```bash
-$ npm install
+npm install
 ```
-
-## Running the app
+### 2 - Instalar y ejecutar Ganache-cli - testNet de ethereum
+- Instala globalmente la testnet de ganache
+```bash
+npm install -g ganache-cli
+``` 
+-  Inicia en nueva terminal la blockchain de Ganache
 
 ```bash
-# development
-$ npm run start
+ganache-cli --gasLimit 15000000
+``` 
 
-# watch mode
-$ npm run start:dev
+### 3 - Iniciar NODO IPFS
 
-# production mode
-$ npm run start:prod
+- Instalar la biblioteca 
+```bash
+npm install ipfs-http-client@56.0.2
 ```
 
-## Test
+- Ejecutar nodo
+```bash
+jsipfs daemon
+```
+### * Smart Contract Deployment
+- Ingresar a Remix IDE https://remix.ethereum.org/.
+- Crear un nuevo smart contract: (El mismo se encuentra en contracts/Contract.sol)
+```bash
+//SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Contract {
+    string public storedData;
+
+    function set(string memory _data) public {
+        storedData = _data;
+    }
+
+    function get() public view returns (string memory) {
+        return storedData;
+    }
+}
+```
+- Compila el contrato y haz el deployed seleccionando "External Http Provider" -> http://127.0.0.1:8545 (puerto de ganache).
+- Copiar el ABI desde remix y la Dirección del contrato en las variables de entorno. (convertir el JSON a una sola linea https://jsonformatter.org/json-to-one-line).
+
+# Iniciar el proyecto
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run start
+```
+```bash
+npm run start:dev
 ```
 
-## Support
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
 
-## Stay in touch
+# Endpoints
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Datos JSON
 
-## License
+### 1. Almacenar datos JSON en un bloque
+**POST** http://localhost:5001/api/endpoint/send
 
-Nest is [MIT licensed](LICENSE).
+- Body -> raw -> JSON
+
+```bash
+{
+  "field1": "value1",
+  "field2": "value2",
+  "field3": 123,
+  "field4": true
+}
+```
+ - Respuesta
+```bash
+{
+    "sha256Hash": "a8d6726e42c9d9e5d9b19c9f042555c3ad153cb7e26d8b6d79adf278eef73cb4",
+    "transactionHash": "0x29fa1fba1ab3fada6992fb669571200525d340a741733c323c88d1052ae1d6fa"
+}
+```
+- El **sha256Hash** nos permite comparar y verificar la inmutabilidad.
+- El **transactionHash** lo utilizaremos para traer los datos de la blockchain. 
+
+### 2. Consultar datos JSON almacenados en un bloque
+
+**GET** http://localhost:5001/api/endpoint/data/[transactionHash]
+
+
+### 3. Consultar Informacion de la transacción de un bloque
+**GET** http://localhost:5001/api/endpoint/infostamp/[transactionHash]
+
+---
+
+## Firma e Inmutabilidad de Documentos
+
+### 1. Firmar un documento y obtener sello de tiempo(.ots)
+**POST** http://localhost:5001/api/timestamp/document
+
+*Body -> form-data*
+
+| Key | Type | Value |
+| ------------ | ----------- | ----------- |
+| file    | File   | Archivo de cualquier formato   |
+
+Respuesta
+  - **documentHash:** Hash del documento SHA256.
+  - **ipfsHash:** CID del documento IPFS. 
+  - **Path:** Almacenamiento archivos. Se guarda el archivo Original y el .ots en la carpeta 'documents'. Se guardaran con el nombre del hash.
+  - **timestampProof:** Prueba de openTimestamp.
+
+
+### 2. Obtener informacion del sello de tiempo .ots
+**POST** http://localhost:5001/api/document/info 
+
+*Body -> form-data*
+
+| Key | Type | Value |
+| ------------ | ----------- | ----------- |
+| file    | File   | archivo **.ots**   |
+
+Respuesta
+  - **documentHash:** Hash del documento original firmado SHA256.
+  - **info:** Info del sello de tiempo.
+
+### 3. Comprobar inmutabilidad del archivo
+**POST** http://localhost:5001/api/document/verify
+
+*Body -> form-data*
+
+  | Key | Type | Value |
+| ------------ | ----------- | ----------- |
+| file    | File   | archivo **.ots**   |
+| file    | File   | Archivo Original   |
+
+Respuesta
+  - **otsHashValue:** Hash obtenido del sello de tiempo.
+  - **newFileHashValue:** CID del documento IPFS.
+  - **hashesMatch:** Compara ambos hash.
+
+
+## Descargar documentos de IPFS
+
+```bash
+jsipfs get [CID IPFS]
+```
+- Se guardara el archivo con el nombre del CID. Hay que añadirle la extensión para visualizarlo correctamente.
