@@ -10,6 +10,7 @@ import { VerificationModule } from './features/verification/verification.module'
 import { MulterModule } from '@nestjs/platform-express';
 import * as path from 'path';
 import { statusModule } from './features/status/status.module';
+import { DocumentStampModule } from './features/documentStamp/documentStamp.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { statusModule } from './features/status/status.module';
     StampModule,
     VerificationModule,
     statusModule,
+    DocumentStampModule,
   ],
   controllers: [AppController],
   providers: [AppService],

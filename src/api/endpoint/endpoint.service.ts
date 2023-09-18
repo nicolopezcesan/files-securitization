@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import Web3 from 'web3';
 import * as crypto from 'crypto';
 
+
 @Injectable()
 export class EndpointService {
   private web3: Web3;
