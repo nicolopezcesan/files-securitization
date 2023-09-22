@@ -14,7 +14,7 @@ export class DocumentStampService {
     private readonly configService: ConfigService,
     ) {}
 
-  async stampDocument(file: Multer.File): Promise<any> {
+  async stampDocument({ file, certificado }: { file: Multer.File; certificado: string | null }): Promise<any> {
     try {
       if (!file) {
         throw new Error('No se proporcionó un archivo.');
@@ -23,6 +23,7 @@ export class DocumentStampService {
 
       // Guardar archivo
       const filePath = `./documents/${file.originalname}`;
+      const nameFile = file.originalname;
       await fs.writeFile(filePath, file.buffer);
 
       // SHA256
@@ -44,14 +45,15 @@ export class DocumentStampService {
       const dataToStore = {
         fileHash,
         timestampHash,
-        filePath,
+        nameFile,
         cid,
+        certificado, 
       };
       
       const transactionHash = await this.endpointService.storeData(dataToStore);
 
-      return { fileHash, timestampHash, filePath, cid, transactionHash };
-    } catch (error) {
+      return { success:true, message: 'El archivo se ha procesado y guardado correctamente en INMUTA.', fileHash, timestampHash, nameFile, cid, certificado, transactionHash, };
+  } catch (error) {
       console.error('Error al procesar el archivo:', error);
       throw new Error('Error al procesar el archivo.');
     }

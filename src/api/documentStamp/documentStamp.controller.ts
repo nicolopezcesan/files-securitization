@@ -4,6 +4,7 @@ import { Multer } from 'multer';
 import { Response } from 'express';
 import { DocumentStampService } from './documentStamp.service';
 
+
 @Controller('documentStamp')
 export class DocumentStampController {
   constructor(private readonly documentStampService: DocumentStampService) {}
@@ -12,7 +13,22 @@ export class DocumentStampController {
   @UseInterceptors(FileInterceptor('file'))
   async stampDocument(@UploadedFile() file: Multer.File) {
     try {
-      const result = await this.documentStampService.stampDocument(file);
+      if (!file) {
+        throw new Error('No se proporcionó un archivo.');
+      }
+
+      // Extraer el número del nombre del archivo
+      const fileName = file.originalname;
+      const match = fileName.match(/^(.*?)\s+(\d+)/);
+      let certificado: string | null = null; // 
+      let nameAndSurname: string | null = null;
+      if (match) {
+        nameAndSurname = match[1];
+        certificado = match[2];
+      }
+
+      // Llama al servicio para procesar el archivo y guardar en Ganache
+      const result = await this.documentStampService.stampDocument({ file, certificado });
 
       return result;
     } catch (error) {
@@ -20,6 +36,7 @@ export class DocumentStampController {
       throw new Error('Error al procesar el archivo.');
     }
   }
+
 
   @Get('document/:fileHash')
   async getDocumentTxt(@Param('fileHash') fileHash: string, @Res() res: Response) {
