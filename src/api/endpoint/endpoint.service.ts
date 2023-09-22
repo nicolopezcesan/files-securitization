@@ -103,4 +103,38 @@ async getData0FromDecodedTransaction(hash: string): Promise<any> {
     throw new Error('Error fetch');
   }
 }
+
+// Obtener el CID relacionado con la transacción
+  async getDataByTransactionHash(transactionHash: string): Promise<any> {
+    try {
+      const transaction = await this.web3.eth.getTransaction(transactionHash);
+      if (!transaction || !transaction.input) {
+        throw new Error('Transacción no encontrada o sin entrada.');
+      }
+
+      const inputData = transaction.input;
+      const methodAbi = this.contract.options.jsonInterface.find(
+        (method: any) =>
+          method.type === 'function' && method.signature === inputData.slice(0, 10)
+      );
+
+      if (methodAbi && methodAbi.name === 'set') {
+        const params = this.web3.eth.abi.decodeParameters(
+          methodAbi.inputs,
+          inputData.slice(10)
+        );
+        const cid = params["0"]; // El CID se encuentra en el primer parámetro
+        return { cid };
+      } else {
+        throw new Error('Transacción no válida para obtener el CID.');
+      }
+    } catch (error) {
+      console.error('Error al obtener el CID por hash de transacción:', error);
+      throw new Error('Error al obtener el CID por hash de transacción.');
+    }
+  }
+
+
+  //
+  
 }
