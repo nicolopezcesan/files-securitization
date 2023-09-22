@@ -2,11 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   app.setGlobalPrefix('api');
-
+  app.use(express.json());
+  
   const config = new DocumentBuilder()
     .setTitle('Inmuta CORE API')
     .setDescription('')
