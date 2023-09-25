@@ -3,13 +3,25 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Multer } from 'multer';
 import { Response } from 'express';
 import { DocumentStampService } from './documentStamp.service';
-
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 @Controller('documentStamp')
 export class DocumentStampController {
   constructor(private readonly documentStampService: DocumentStampService) {}
 
   @Post('document')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @UseInterceptors(FileInterceptor('file'))
   async stampDocument(@UploadedFile() file: Multer.File) {
     try {
@@ -20,7 +32,7 @@ export class DocumentStampController {
       // Extraer el número del nombre del archivo
       const fileName = file.originalname;
       const match = fileName.match(/^(.*?)\s+(\d+)/);
-      let certificado: string | null = null; // 
+      let certificado: string | null = null; //
       let nameAndSurname: string | null = null;
       if (match) {
         nameAndSurname = match[1];
@@ -36,7 +48,6 @@ export class DocumentStampController {
       throw new Error('Error al procesar el archivo.');
     }
   }
-
 
   @Get('document/:fileHash')
   async getDocumentTxt(@Param('fileHash') fileHash: string, @Res() res: Response) {
