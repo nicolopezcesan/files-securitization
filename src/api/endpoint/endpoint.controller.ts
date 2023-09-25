@@ -12,12 +12,10 @@ export class EndpointController {
     const sha256Hash = this.endpointService.calculateSHA256(body);
     return { sha256Hash, transactionHash };
   }
-  
+
   @Get('infostamp/:hash')
   async getDecodedTransactionData(@Param('hash') hash: string) {
-    const decodedTransactionData = await this.endpointService.getDecodedTransactionData(
-      hash
-    );
+    const decodedTransactionData = await this.endpointService.getDecodedTransactionData(hash);
     return { decodedTransactionData };
   }
 
@@ -59,6 +57,30 @@ export class EndpointController {
     } catch (error) {
       console.error('Error al generar el acuse:', error);
       res.status(500).send('Error al generar el acuse');
+    }
+  }
+
+  @Get('deploy-contract')
+  async deployContract(@Res() res): Promise<void> {
+    try {
+      const contractAddress = await this.endpointService.deployContract();
+
+      res.send(contractAddress);
+    } catch (error) {
+      console.error('Error al desplegar el contrato:', error);
+      res.status(500).send('Error al desplegar el contrato');
+    }
+  }
+
+  @Get('unlock-account')
+  async unlockAccount(@Res() res): Promise<void> {
+    try {
+      const result = await this.endpointService.unlockAccount();
+
+      res.send(result);
+    } catch (error) {
+      console.error('Error al desbloquear la cuenta:', error);
+      res.status(500).send('Error al desbloquear la cuenta');
     }
   }
 }
