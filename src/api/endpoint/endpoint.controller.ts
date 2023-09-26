@@ -60,17 +60,17 @@ export class EndpointController {
     }
   }
 
-  @Get('deploy-contract')
-  async deployContract(@Res() res): Promise<void> {
-    try {
-      const contractAddress = await this.endpointService.deployContract();
+  // @Get('deploy-contract')
+  // async deployContract(@Res() res): Promise<void> {
+  //   try {
+  //     const contractAddress = await this.endpointService.deployContract();
 
-      res.send(contractAddress);
-    } catch (error) {
-      console.error('Error al desplegar el contrato:', error);
-      res.status(500).send('Error al desplegar el contrato');
-    }
-  }
+  //     res.send(contractAddress);
+  //   } catch (error) {
+  //     console.error('Error al desplegar el contrato:', error);
+  //     res.status(500).send('Error al desplegar el contrato');
+  //   }
+  // }
 
   @Get('unlock-account')
   async unlockAccount(@Res() res): Promise<void> {
