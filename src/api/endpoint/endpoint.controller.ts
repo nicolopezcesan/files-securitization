@@ -1,5 +1,6 @@
-import { Controller, Post, Body, Get, Param, Res } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Res, UseGuards } from '@nestjs/common';
 import { EndpointService } from './endpoint.service';
+import { AuthGuard } from '../auth/auth.guard';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import * as PDFDocument from 'pdfkit'; 
 import * as rp from 'request-promise';
@@ -51,6 +52,7 @@ export class EndpointController {
     return data0;
   }
 
+  @UseGuards(AuthGuard)
   @ApiTags(' Pdf.')
   @Get('acuse/:hash')
   @ApiOperation({summary: '.PDF', description: 'Comprobante de operación .INMUTA' })

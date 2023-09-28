@@ -10,6 +10,7 @@ import * as path from 'path';
 import { DocumentStampModule } from './features/documentStamp/documentStamp.module';
 import { IPFSModule } from './features/ipfs/ipfs.module';
 import { HealthController } from './api/health/health.controller';
+import { AuthModule } from './features/auth/auth.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { HealthController } from './api/health/health.controller';
     EndpointModule,
     DocumentStampModule,
     IPFSModule,
+    AuthModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
