@@ -1,7 +1,8 @@
-import { Controller, Post, Param, Res } from '@nestjs/common';
+import { Controller, Post, Param, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('ipfs')
 export class IpfsController {
@@ -9,6 +10,7 @@ export class IpfsController {
     private readonly configService: ConfigService,
     ) {}
 
+  @UseGuards(AuthGuard)
   @Post('download/:cid')
   async downloadFile(@Param('cid') cid: string, @Res() res: Response) {
     try {

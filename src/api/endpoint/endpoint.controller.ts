@@ -1,6 +1,7 @@
-import { Controller, Post, Body, Get, Param, Res } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Res, UseGuards } from '@nestjs/common';
 import { EndpointService } from './endpoint.service';
 import PDFDocument from 'pdfkit';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('endpoint')
 export class EndpointController {
@@ -25,6 +26,7 @@ export class EndpointController {
     return data0;
   }
 
+  @UseGuards(AuthGuard)
   @Get('acuse/:hash')
   async generateAcuse(@Param('hash') hash: string, @Res() res): Promise<void> {
     try {
