@@ -4,10 +4,14 @@ import { Multer } from 'multer';
 import { Response } from 'express';
 import { DocumentStampService } from './documentStamp.service';
 import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { EndpointService } from '../endpoint/endpoint.service'; 
 
 @Controller('documentStamp')
 export class DocumentStampController {
-  constructor(private readonly documentStampService: DocumentStampService) {}
+  constructor(
+    private readonly documentStampService: DocumentStampService,
+    private readonly endpointService: EndpointService,
+    ) {}
 
   @Post('document')
   @ApiConsumes('multipart/form-data')
@@ -24,6 +28,7 @@ export class DocumentStampController {
   })
   @UseInterceptors(FileInterceptor('file'))
   async stampDocument(@UploadedFile() file: Multer.File) {
+    await this.endpointService.unlockAccount();
     try {
       if (!file) {
         throw new Error('No se proporcionó un archivo.');
@@ -46,6 +51,8 @@ export class DocumentStampController {
     } catch (error) {
       console.error('Error al procesar el archivo:', error);
       throw new Error('Error al procesar el archivo.');
+    } finally {
+      await this.endpointService.lockAccount(); 
     }
   }
 

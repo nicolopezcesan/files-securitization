@@ -44,6 +44,7 @@ export class DocumentStampService {
       // Guardar en Ganache
       const dataToStore = {
         fileHash,
+        timestamp,
         timestampHash,
         nameFile,
         cid,
