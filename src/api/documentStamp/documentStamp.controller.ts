@@ -3,7 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Multer } from 'multer';
 import { Response } from 'express';
 import { DocumentStampService } from './documentStamp.service';
-import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { EndpointService } from '../endpoint/endpoint.service'; 
 
 @Controller('documentStamp')
@@ -12,8 +12,12 @@ export class DocumentStampController {
     private readonly documentStampService: DocumentStampService,
     private readonly endpointService: EndpointService,
     ) {}
+    
+  @ApiTags(' Pdf.')
 
   @Post('document')
+  @ApiOperation({summary: '.PDF', description: 'Securitizar documento en la blockchain' })
+
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -56,20 +60,5 @@ export class DocumentStampController {
     }
   }
 
-  @Get('document/:fileHash')
-  async getDocumentTxt(@Param('fileHash') fileHash: string, @Res() res: Response) {
-    try {
-      const txtContent = await this.documentStampService.getTxtContent(fileHash);
-
-      // Configura los encabezados de respuesta para indicar que estás enviando un archivo .txt
-      res.setHeader('Content-Type', 'text/plain');
-      res.attachment(`${fileHash}.txt`);
-
-      // Envía el contenido del archivo .txt como respuesta
-      res.send(txtContent);
-    } catch (error) {
-      console.error('Error al obtener el archivo .txt:', error);
-      throw new Error('Error al obtener el archivo .txt.');
-    }
-  }
+  
 }

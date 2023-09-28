@@ -1,13 +1,14 @@
 import { Controller, Post, Body, Get, Param, Res } from '@nestjs/common';
 import { EndpointService } from './endpoint.service';
-import { ApiBody, ApiOperation } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import * as PDFDocument from 'pdfkit'; 
 import * as rp from 'request-promise';
 
 @Controller('endpoint')
 export class EndpointController {
   constructor(private readonly endpointService: EndpointService) {}
-
+  
+  @ApiTags('datos Json.')
   @Post('send')
   @ApiOperation({ summary: 'JSON', description: 'Para almacenar JSON' })
   @ApiBody({
@@ -33,8 +34,8 @@ export class EndpointController {
     }
   }
 
-  @Get('infostamp/:hash')
-  
+  @ApiTags('datos Json.')
+  @Get('infostamp/:hash')  
   @ApiOperation({summary: 'JSON', description: 'Consultar información del bloque' })
 
   async getDecodedTransactionData(@Param('hash') hash: string) {
@@ -42,14 +43,15 @@ export class EndpointController {
     return { decodedTransactionData };
   }
 
+  @ApiTags('datos Json.')
   @Get('data/:hash')
   @ApiOperation({summary: 'JSON', description: 'Obtener la información almacenada en JSON' })
-
   async getData0FromDecodedTransaction(@Param('hash') hash: string) {
     const data0 = await this.endpointService.getData0FromDecodedTransaction(hash);
     return data0;
   }
 
+  @ApiTags(' Pdf.')
   @Get('acuse/:hash')
   @ApiOperation({summary: '.PDF', description: 'Comprobante de operación .INMUTA' })
 
@@ -70,43 +72,71 @@ export class EndpointController {
       Securitizado en Inmuta el día ${new Date(timestamp).toISOString()} \n
       Transacción Hash: ${hash}
       \n
-      Información del Bloque: ${JSON.stringify(decodedTransactionData)} \n
+      Información del Bloque: ${JSON.stringify(data0)} \n
     
       ----------------------------------------------------------\n
       Fecha de Consulta: ${fechaConsulta}\n\n`;
 
 
       // Obtener el logo de Inmuta
-      const logoUrl = 'https://raw.githubusercontent.com/pedrotapia2416/img/main/logo%20(2).png';
+      const logoUrl = 'https://raw.githubusercontent.com/pedrotapia2416/img/main/logo.png';
       const logoResponse = await rp.get({ url: logoUrl, encoding: null });
-      // Obtener las dimensiones del logo
-      const logoDimensions = (logoResponse);
+      
 
       // Crear un nuevo documento PDF
       const doc = new PDFDocument();
-      const pdfFileName = `acuse_${hash}.pdf`;
+      const pdfFileName = `acuse_${hash}.pdf`; 
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename=${pdfFileName}`);
 
       doc.pipe(res);
+      // Establecer los tamaños de los márgenes en puntos
+      const margenSuperior = 220;
+      const margenIzquierdo = 50;
+      const margenDerecho = 50;
+      const margenInferior = 520;
 
-    doc.image(logoResponse, { width: 50, height: 50 }).fill('#EAEAEA');
+      // Cuadrado transaction hash
+      const anchoUtil = doc.page.width - margenIzquierdo - margenDerecho;
+      const altoUtil = doc.page.height - margenSuperior - margenInferior;
+
+      // Cuadrado transaction data
+      const anchoUtilData = doc.page.width - margenIzquierdo - margenDerecho;
+      const altoUtilData = doc.page.height - 100 - 220;
+
+      // Rectangulo data
+      doc.rect(margenIzquierdo, margenSuperior, anchoUtilData, altoUtilData).fill('#EAEAEA'); 
+
+      // Rectangulo transaction hash
+      doc.rect(margenIzquierdo, margenSuperior, anchoUtil, altoUtil).fill('#0511F2'); 
+
+      
+
+
+
+              
+
+    doc.image(logoResponse, { width: 470, height: 80 });
 
     doc.font('Helvetica-Bold').fontSize(14).fillColor('#0511F2').text('COMPROBANTE DE OPERACIÓN', { align: 'center' });
     doc.moveDown();
 
-    doc.font('Helvetica').fontSize(12).fillColor('black');
-    doc.text(`Securitizado en Inmuta el día ${dataSecuritizacion}`, { align: 'right' });
+    doc.font('Helvetica-Bold').fontSize(12).fillColor('black');
+    doc.text(`Securitizado en Inmuta el día ${dataSecuritizacion}`, { align: 'center' });
+    doc.font('Helvetica')
     doc.moveDown();
     doc.moveDown();
-      
+
+    doc.fillColor('white')
     doc.text(`Transacción Hash: ${hash}`);
+    doc.fillColor('black');
     doc.moveDown();
     doc.moveDown();
 
     doc.text('Información del Bloque:');
-    doc.text(JSON.stringify(decodedTransactionData, null, 2));
+    doc.moveDown();
+    doc.text(JSON.stringify(data0, null, 2));
     doc.moveDown();
     doc.moveDown();
     doc.moveDown();
