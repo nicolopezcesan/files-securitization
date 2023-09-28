@@ -7,9 +7,11 @@ import * as crypto from 'crypto';
 export class EndpointService {
   private web3: Web3;
   private contract: any;
+  private readonly secretKey: string
 
   constructor(private readonly configService: ConfigService) {
     const blockchainUrl = this.configService.get<string>('BLOCKCHAIN_URL');
+    this.secretKey = this.configService.get<string>('SECRET_KEY');
     if (!blockchainUrl) {
       throw new Error('BLOCKCHAIN_URL no está definido en .env');
     }
@@ -110,7 +112,7 @@ export class EndpointService {
 
       if (methodAbi && methodAbi.name === 'set') {
         const params = this.web3.eth.abi.decodeParameters(methodAbi.inputs, inputData.slice(10));
-        const cid = params['0']; // El CID se encuentra en el primer parámetro
+        const cid = params['0']; 
         return { cid };
       } else {
         throw new Error('Transacción no válida para obtener el CID.');
@@ -187,11 +189,24 @@ export class EndpointService {
     const accounts = await this.web3.eth.getAccounts();
     const mainAccount = accounts[0];
     try {
-      await this.web3.eth.personal.unlockAccount(mainAccount, '5uper53cr3t', 15000);
+      await this.web3.eth.personal.unlockAccount(mainAccount,this.secretKey, 15000);
+      console.log(' Cuenta Desbloqueada ');
     } catch (error) {
       console.log('ERROR AL DESBLOQUEAR CUENTA', error);
     }
 
     return 'Cuenta desbloqueada';
+  }
+
+  async lockAccount(): Promise<void> {
+    const accounts = await this.web3.eth.getAccounts();
+    const mainAccount = accounts[0];
+    try {
+      await this.web3.eth.personal.lockAccount(mainAccount);
+      console.log(' Cuenta Bloqueada ');
+    } catch (error) {
+      console.error('Error al bloquear la cuenta:', error);
+      throw new Error('Error al bloquear la cuenta');
+    }
   }
 }

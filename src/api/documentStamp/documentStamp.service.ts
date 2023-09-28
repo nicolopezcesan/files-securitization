@@ -44,6 +44,7 @@ export class DocumentStampService {
       // Guardar en Ganache
       const dataToStore = {
         fileHash,
+        timestamp,
         timestampHash,
         nameFile,
         cid,
@@ -60,15 +61,6 @@ export class DocumentStampService {
   }
 
 
-  async getTxtContent(fileHash: string): Promise<string> {
-    try {
-      const txtFilePath = `./documents/${fileHash}.txt`;
-      const txtContent = await fs.readFile(txtFilePath, 'utf-8');
-      return txtContent;
-    } catch (error) {
-      console.error('Error al obtener el archivo .txt:', error);
-      throw new Error('Error al obtener el archivo .txt.');
-    }
-  }
+  
 
 }
