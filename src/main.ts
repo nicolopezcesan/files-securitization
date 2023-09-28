@@ -11,7 +11,7 @@ async function bootstrap() {
   
   const config = new DocumentBuilder()
     .setTitle('Inmuta CORE API')
-    .setDescription('')
+    .setDescription('API de Inmuta')
     .setVersion('1.0')
     .build();
 

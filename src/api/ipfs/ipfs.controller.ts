@@ -3,15 +3,19 @@ import { Response } from 'express';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '../auth/auth.guard';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('ipfs')
 export class IpfsController {
   constructor(
     private readonly configService: ConfigService,
     ) {}
+    @ApiTags(' Pdf.')
 
   @UseGuards(AuthGuard)
   @Post('download/:cid')
+  @ApiOperation({summary: '.PDF', description: 'Obtener el documento en la blockchain' })
+
   async downloadFile(@Param('cid') cid: string, @Res() res: Response) {
     try {
       const ipfsNodeUrl = this.configService.get('IPFS_NODE_URL');
