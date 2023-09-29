@@ -11,6 +11,8 @@ import { DocumentStampModule } from './features/documentStamp/documentStamp.modu
 import { IPFSModule } from './features/ipfs/ipfs.module';
 import { HealthController } from './api/health/health.controller';
 import { AuthModule } from './features/auth/auth.module';
+import { DatabaseModule } from './configs/database/database.module';
+import { CertificateModule } from './features/certificates/certificates.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { AuthModule } from './features/auth/auth.module';
     DocumentStampModule,
     IPFSModule,
     AuthModule,
+    DatabaseModule,
+    CertificateModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

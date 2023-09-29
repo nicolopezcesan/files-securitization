@@ -5,11 +5,11 @@ import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import * as PDFDocument from 'pdfkit'; 
 import * as rp from 'request-promise';
 
-@Controller('endpoint')
+@Controller('')
 export class EndpointController {
   constructor(private readonly endpointService: EndpointService) {}
   
-  @ApiTags('datos Json.')
+  @ApiTags('.json')
   @Post('send')
   @ApiOperation({ summary: 'JSON', description: 'Para almacenar JSON' })
   @ApiBody({
@@ -35,7 +35,7 @@ export class EndpointController {
     }
   }
 
-  @ApiTags('datos Json.')
+  @ApiTags('.json')
   @Get('infostamp/:hash')  
   @ApiOperation({summary: 'JSON', description: 'Consultar información del bloque' })
 
@@ -44,7 +44,7 @@ export class EndpointController {
     return { decodedTransactionData };
   }
 
-  @ApiTags('datos Json.')
+  @ApiTags('.json')
   @Get('data/:hash')
   @ApiOperation({summary: 'JSON', description: 'Obtener la información almacenada en JSON' })
   async getData0FromDecodedTransaction(@Param('hash') hash: string) {
@@ -53,8 +53,8 @@ export class EndpointController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiTags(' Pdf.')
-  @Get('acuse/:hash')
+  @ApiTags('.pdf')
+  @Get('admin/acuse/:hash')
   @ApiOperation({summary: '.PDF', description: 'Comprobante de operación .INMUTA' })
 
   async generateAcuse(@Param('hash') hash: string, @Res() res): Promise<void> {
