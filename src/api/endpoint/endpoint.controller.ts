@@ -52,7 +52,7 @@ export class EndpointController {
     return data0;
   }
 
-  @UseGuards(AuthGuard)
+  //@UseGuards(AuthGuard)
   @ApiTags('.pdf')
   @Get('admin/acuse/:hash')
   @ApiOperation({summary: '.PDF', description: 'Comprobante de operación .INMUTA' })
