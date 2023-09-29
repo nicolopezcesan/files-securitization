@@ -1,16 +1,18 @@
-import { Controller, Post, Param, Res } from '@nestjs/common';
+import { Controller, Post, Param, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '../auth/auth.guard';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-@Controller('ipfs')
+@Controller('admin/ipfs')
 export class IpfsController {
   constructor(
     private readonly configService: ConfigService,
     ) {}
-    @ApiTags(' Pdf.')
 
+  @ApiTags('.pdf')
+  @UseGuards(AuthGuard)
   @Post('download/:cid')
   @ApiOperation({summary: '.PDF', description: 'Obtener el documento en la blockchain' })
 

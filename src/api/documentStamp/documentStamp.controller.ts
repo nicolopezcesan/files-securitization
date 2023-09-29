@@ -13,7 +13,7 @@ export class DocumentStampController {
     private readonly endpointService: EndpointService,
     ) {}
     
-  @ApiTags(' Pdf.')
+  @ApiTags('.pdf')
 
   @Post('document')
   @ApiOperation({summary: '.PDF', description: 'Securitizar documento en la blockchain' })
