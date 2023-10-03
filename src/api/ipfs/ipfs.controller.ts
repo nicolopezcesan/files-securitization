@@ -12,7 +12,7 @@ export class IpfsController {
     ) {}
 
   @ApiTags('.pdf')
-  //@UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Post('download/:cid')
   @ApiOperation({summary: '.PDF', description: 'Obtener el documento en la blockchain' })
 
