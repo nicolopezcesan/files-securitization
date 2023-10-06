@@ -33,6 +33,7 @@ export class AwsCognitoService {
         onFailure: (err) => reject(err),
         onSuccess: (result) => resolve({
           accessToken: result.getAccessToken().getJwtToken(),
+          username: result.getAccessToken().decodePayload().username,
         }),
       });
     }).catch((error) => {
@@ -56,7 +57,8 @@ export class AwsCognitoService {
     const { username, email, password } = params;
 
     const attributeList = [
-      new CognitoUserAttribute({ Name: 'email', Value: email })
+      new CognitoUserAttribute({ Name: 'email', Value: email }),
+      // new CognitoUserAttribute({ Name: 'email_verified', Value: 'true' })
     ];
 
     return new Promise((resolve, reject) => {
