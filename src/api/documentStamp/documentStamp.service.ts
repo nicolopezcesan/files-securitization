@@ -7,7 +7,8 @@ import { EndpointService } from '../endpoint/endpoint.service';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Certificate } from 'src/features/certificates/certificate.schema';
+import { Certificate, CertificateState } from 'src/features/certificates/certificate.schema';
+
 
 @Injectable()
 export class DocumentStampService {
@@ -16,7 +17,8 @@ export class DocumentStampService {
     private readonly configService: ConfigService,
     @InjectModel(Certificate.name)
     private readonly stampedDocumentModel: Model<Certificate>,
-    ) {}
+  ) { }
+
 
   async stampDocument({ file, certificado }: { file: Multer.File; certificado: string | null }): Promise<any> {
     try {
@@ -69,16 +71,17 @@ export class DocumentStampService {
         transactionHash = await this.endpointService.storeData(dataToStore);
       } catch (blockchainError) {
         console.error('Error al subir el archivo a blockchain:', blockchainError);
-        transactionHash = null; // Establecer transactionHash como null en caso de error
+        transactionHash = null;
       }
       
-      //Status
-      let status = "PENDING";
-      if (transactionHash === null || cid === null) {
-        status = "IN_PROCESS" ;
-      } else {
-        status = "COMPLETED";
-      }
+       //Status
+       let status = CertificateState.PENDING;
+       if (transactionHash === null || cid === null) {
+         status = CertificateState.IN_PROCESS;
+       } else {
+         status = CertificateState.COMPLETED;
+       }
+ 
 
       // Guardar en MongoDB el resultado
       const stampedDocument = new this.stampedDocumentModel({
