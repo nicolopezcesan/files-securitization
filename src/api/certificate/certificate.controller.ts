@@ -2,8 +2,8 @@ import { Controller, DefaultValuePipe, Get, ParseIntPipe, Query, UseGuards } fro
 import { CertificatesService } from './certificate.service';
 import { Certificate, CertificateDocument  } from 'src/features/certificates/certificate.schema';
 import { AuthGuard } from '../auth/auth.guard';
-
 import { PaginateResult } from 'mongoose';
+import { ApiQuery } from '@nestjs/swagger';
 
 @Controller('certificates')
 export class CertificateController {

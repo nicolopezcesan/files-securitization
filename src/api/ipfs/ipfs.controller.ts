@@ -15,7 +15,7 @@ export class IpfsController {
   @UseGuards(AuthGuard)
   @Post('download/:cid')
   @ApiOperation({ summary: '.PDF', description: 'Obtener el documento en la blockchain' })
-  @ApiBearerAuth('bearer')
+    @ApiBearerAuth('bearer')
   async downloadFile(@Param('cid') cid: string, @Res() res: Response) {
     try {
       const ipfsNodeUrl = this.configService.get('IPFS_NODE_URL');
