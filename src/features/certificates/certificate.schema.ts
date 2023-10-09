@@ -4,19 +4,12 @@ import { Document } from 'mongoose';
 import * as MongoosePagination from 'mongoose-paginate-v2';
 import MongooseAggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
-enum StatusEnum {
-  Completado = 'Completado',
-  Fallido = 'Fallido',
-  Pendiente = 'Pendiente',
-}
-
 export enum CertificateState {
   IN_PROCESS = 'IN_PROCESS',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
   PENDING = 'PENDING',
 }
-
 
 @Schema({ timestamps: { createdAt: 'process_date', updatedAt: false } }) 
 export class Certificate extends Document {
