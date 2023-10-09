@@ -22,7 +22,7 @@ export class CertificateController {
     return response;
   }
 
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Get('count')
   async countByState(): Promise<{ certificates: TCertificateByState[] }> {
     const response = await this.certificatesService.countCertificateByState();

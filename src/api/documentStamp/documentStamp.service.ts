@@ -9,7 +9,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Certificate, CertificateState } from 'src/features/certificates/certificate.schema';
 
-
 @Injectable()
 export class DocumentStampService {
   constructor(
@@ -19,12 +18,11 @@ export class DocumentStampService {
     private readonly stampedDocumentModel: Model<Certificate>,
   ) { }
 
-
   async stampDocument({ file, certificado }: { file: Multer.File; certificado: string | null }): Promise<any> {
     try {
       if (!file) {
         throw new Error('No se proporcionó un archivo.');
-      }  
+      }
 
       // Guardar archivo
       const filePath = `./documents/${file.originalname}`;
@@ -42,7 +40,7 @@ export class DocumentStampService {
       const timestampHash = crypto.createHash('sha256').update(timestamp).digest('hex');
 
       // IPFS
-      let cid = null; 
+      let cid = null;
       const ipfsNodeUrl = this.configService.get('IPFS_NODE_URL');
       const ipfs = create({ url: ipfsNodeUrl });
       try {
@@ -51,13 +49,13 @@ export class DocumentStampService {
       } catch (ipfsError) {
         console.error('Error al subir el archivo a IPFS:', ipfsError);
       }
-      
+
       //Elimina el archivo
       await fs.unlink(filePath);
 
       // Guardar en Blockchain
-      let transactionHash= null;
-      
+      let transactionHash = null;
+
       try {
         const dataToStore = {
           fileHash,
@@ -67,21 +65,20 @@ export class DocumentStampService {
           cid,
           certificado,
         };
-      
+
         transactionHash = await this.endpointService.storeData(dataToStore);
       } catch (blockchainError) {
         console.error('Error al subir el archivo a blockchain:', blockchainError);
         transactionHash = null;
       }
-      
-       //Status
-       let status = CertificateState.PENDING;
-       if (transactionHash === null || cid === null) {
-         status = CertificateState.IN_PROCESS;
-       } else {
-         status = CertificateState.COMPLETED;
-       }
- 
+
+      //Status
+      let status = CertificateState.PENDING;
+      if (transactionHash === null || cid === null) {
+        status = CertificateState.IN_PROCESS;
+      } else {
+        status = CertificateState.COMPLETED;
+      }
 
       // Guardar en MongoDB el resultado
       const stampedDocument = new this.stampedDocumentModel({
@@ -95,15 +92,11 @@ export class DocumentStampService {
         cid,
       });
       await stampedDocument.save();
-      
-      return { success:true, message: 'El archivo se ha procesado y guardado correctamente en INMUTA.', fileHash, timestampHash, nameFile, cid, certificado, transactionHash, };
-  } catch (error) {
+
+      return { success: true, message: 'El archivo se ha procesado y guardado correctamente en INMUTA.', fileHash, timestampHash, nameFile, cid, certificado, transactionHash, };
+    } catch (error) {
       console.error('Error al procesar el archivo:', error);
       throw new Error('Error al procesar el archivo.');
     }
   }
-
-
-  
-
 }
