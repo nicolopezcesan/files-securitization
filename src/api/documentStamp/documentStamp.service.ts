@@ -69,7 +69,7 @@ export class DocumentStampService {
         transactionHash = await this.endpointService.storeData(dataToStore);
       } catch (blockchainError) {
         console.error('Error al subir el archivo a blockchain:', blockchainError);
-        transactionHash = null; // Establecer transactionHash como null en caso de error
+        transactionHash = null;
       }
 
       //Status

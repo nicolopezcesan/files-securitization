@@ -10,7 +10,7 @@ import { TCertificateByState } from 'src/features/certificates/certificate.repos
 export class CertificateController {
   constructor(private readonly certificatesService: CertificatesService) {}
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Get()
   async findAll(
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
