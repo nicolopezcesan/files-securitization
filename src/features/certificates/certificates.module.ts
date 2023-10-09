@@ -15,11 +15,18 @@ import { CertificateRepository } from './certificate.repository';
 		CertificateRepository
 	],
 	imports: [
-		MongooseModule.forRoot('mongodb+srv://testInmuta:s3cr3ta@cluster0.zcvjmow.mongodb.net/?retryWrites=true&w=majority'),
-		MongooseModule.forFeature([{
+		MongooseModule.forRootAsync({
+		  inject: [ConfigService],
+		  useFactory: async (configService: ConfigService) => ({
+			uri: configService.get<string>('MONGODB_URI'),
+		  }),
+		}),
+		MongooseModule.forFeature([
+		  {
 			name: Certificate.name,
-			schema: CertificateSchema
-		}]),
+			schema: CertificateSchema,
+		  },
+		]), 
 	],
 })
 

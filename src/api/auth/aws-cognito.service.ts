@@ -101,7 +101,7 @@ export class AwsCognitoService {
           if (err) {
             return reject(err);
           }
-          return resolve({ message: 'The user confirmed successfully' });
+          return resolve({ message: 'The user confirmed successfully ' });
         },
       );
     }).catch((error) => {
