@@ -19,3 +19,35 @@ deploy:dev:
     - dpl --provider=heroku --app=$APP_NAME --api-key=$HEROKU_API_KEY
   only:
     - /^dev-.*$/
+
+deploy:test:
+  image: ruby:latest
+  stage: deploy
+  variables:
+    APP_NAME: $HEROKU_APP_NAME_TEST
+    HEROKU_API_KEY: $HEROKU_API_KEY
+  before_script:
+    - apt-get update -qy
+    - apt-get install -y npm
+    - gem install dpl
+    - npm install
+  script:
+    - dpl --provider=heroku --app=$APP_NAME --api-key=$HEROKU_API_KEY
+  only:
+    - /^test-.*$/
+
+deploy:prod:
+  image: ruby:latest
+  stage: deploy
+  variables:
+    APP_NAME: $HEROKU_APP_NAME_PROD
+    HEROKU_API_KEY: $HEROKU_API_KEY
+  before_script:
+    - apt-get update -qy
+    - apt-get install -y npm
+    - gem install dpl
+    - npm install
+  script:
+    - dpl --provider=heroku --app=$APP_NAME --api-key=$HEROKU_API_KEY
+  only:
+    - /^prod-.*$/
