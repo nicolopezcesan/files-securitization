@@ -12,8 +12,8 @@ export class AuthGuard implements CanActivate {
   ) {
     this.verifier = CognitoJwtVerifier.create({
       tokenUse: null,
-      clientId: this.configService.get('TEST_AWS_COGNITO_CLIENT_ID'),
-      userPoolId: this.configService.get('TEST_AWS_COGNITO_USER_POOL_ID'),
+      clientId: this.configService.get('AWS_COGNITO_CLIENT_ID'),
+      userPoolId: this.configService.get('AWS_COGNITO_USER_POOL_ID'),
     });
   }
 

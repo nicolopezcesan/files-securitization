@@ -12,8 +12,8 @@ export class AwsCognitoService {
     private readonly configService: ConfigService,
   ) {
     this.userPool = new CognitoUserPool({
-      UserPoolId: this.configService.get('TEST_AWS_COGNITO_USER_POOL_ID'),
-      ClientId: this.configService.get('TEST_AWS_COGNITO_CLIENT_ID'),
+      UserPoolId: this.configService.get('AWS_COGNITO_USER_POOL_ID'),
+      ClientId: this.configService.get('AWS_COGNITO_CLIENT_ID'),
     });
   }
 
