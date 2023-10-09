@@ -73,11 +73,11 @@ export class DocumentStampService {
       }
       
       //Status
-      let status = "pendiente";
+      let status = "PENDING";
       if (transactionHash === null || cid === null) {
-        status = "Fallido" ;
+        status = "IN_PROCESS" ;
       } else {
-        status = "Completado";
+        status = "COMPLETED";
       }
 
       // Guardar en MongoDB el resultado

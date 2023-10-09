@@ -10,9 +10,17 @@ enum StatusEnum {
   Pendiente = 'Pendiente',
 }
 
+export enum CertificateState {
+  IN_PROCESS = 'IN_PROCESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+  PENDING = 'PENDING',
+}
+
+
 @Schema({ timestamps: { createdAt: 'process_date', updatedAt: false } }) 
 export class Certificate extends Document {
-  @Prop({ type: String, enum: Object.values(StatusEnum) }) 
+  @Prop({ type: String, enum: Object.values(CertificateState) }) 
   status: string;
 
   @Prop()
