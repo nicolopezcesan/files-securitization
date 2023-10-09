@@ -1,7 +1,6 @@
 import { Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Multer } from 'multer';
-import { Response } from 'express';
 import { DocumentStampService } from './documentStamp.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { EndpointService } from '../endpoint/endpoint.service'; 

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config'; 
-import { DocumentStamp, DocumentStampSchema  } from 'src/features/documentStamp/documentStamp.schema';
+import { Certificate, CertificateSchema } from 'src/features/certificates/certificate.schema';
 
 @Module({
   imports: [
@@ -11,7 +11,7 @@ import { DocumentStamp, DocumentStampSchema  } from 'src/features/documentStamp/
       }),
       inject: [ConfigService],
     }),
-    MongooseModule.forFeature([{ name: DocumentStamp.name, schema: DocumentStampSchema  }]),
+    MongooseModule.forFeature([{ name: Certificate.name, schema: CertificateSchema  }]),
   ],
   exports: [MongooseModule],
 })
