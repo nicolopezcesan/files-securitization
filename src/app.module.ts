@@ -12,7 +12,7 @@ import { IPFSModule } from './features/ipfs/ipfs.module';
 import { HealthController } from './api/health/health.controller';
 import { AuthModule } from './features/auth/auth.module';
 import { DatabaseModule } from './configs/database/database.module';
-import { CertificateModule } from './features/certificates/certificates.module';
+import { CertificatesModule } from './features/certificates/certificates.module';
 
 @Module({
   imports: [
@@ -30,7 +30,7 @@ import { CertificateModule } from './features/certificates/certificates.module';
     IPFSModule,
     AuthModule,
     DatabaseModule,
-    CertificateModule,
+    CertificatesModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

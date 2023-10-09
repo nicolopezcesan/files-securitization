@@ -4,12 +4,13 @@ import { DocumentStampService } from 'src/api/documentStamp/documentStamp.servic
 import { EndpointService } from 'src/api/endpoint/endpoint.service';
 import { DocumentStamp, DocumentStampSchema } from './documentStamp.schema'; 
 import { MongooseModule } from '@nestjs/mongoose';
+import { Certificate, CertificateSchema } from '../certificates/certificate.schema';
 
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: DocumentStamp.name, schema: DocumentStampSchema },
+      { name: Certificate.name, schema: CertificateSchema },
     ]),
   ], 
   controllers: [DocumentStampController],
