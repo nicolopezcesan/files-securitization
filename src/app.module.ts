@@ -33,6 +33,7 @@ import { ProcessDataModule } from './features/processData/processData.module';
     DatabaseModule,
     CertificatesModule,
     ProcessDataModule,
+    
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
