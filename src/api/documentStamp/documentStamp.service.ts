@@ -99,21 +99,4 @@ export class DocumentStampService {
       throw new Error('Error al procesar el archivo.');
     }
   }
-<<<<<<< HEAD
-
-
-  async listFilesInFolder(folderPath: string): Promise<string[]> {
-    try {
-      const files = await fs.readdir(folderPath);
-      return files.map((fileName) => `${folderPath}/${fileName}`);
-    } catch (error) {
-      console.error(`Error al listar archivos en la carpeta ${folderPath}:`, error);
-      throw new Error(`Error al listar archivos en la carpeta ${folderPath}.`);
-    }
-  }
-
-  
-
-=======
->>>>>>> a4a5ad3b25093f5096d6d00fddfd65ca67991c95
 }
