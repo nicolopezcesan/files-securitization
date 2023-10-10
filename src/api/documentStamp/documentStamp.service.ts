@@ -104,6 +104,16 @@ export class DocumentStampService {
   }
 
 
+  async listFilesInFolder(folderPath: string): Promise<string[]> {
+    try {
+      const files = await fs.readdir(folderPath);
+      return files.map((fileName) => `${folderPath}/${fileName}`);
+    } catch (error) {
+      console.error(`Error al listar archivos en la carpeta ${folderPath}:`, error);
+      throw new Error(`Error al listar archivos en la carpeta ${folderPath}.`);
+    }
+  }
+
   
 
 }

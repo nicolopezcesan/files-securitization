@@ -13,7 +13,6 @@ import { HealthController } from './api/health/health.controller';
 import { AuthModule } from './features/auth/auth.module';
 import { DatabaseModule } from './configs/database/database.module';
 import { CertificatesModule } from './features/certificates/certificates.module';
-import { ProcessDataModule } from './features/processData/processData.module';
 
 @Module({
   imports: [
@@ -32,7 +31,7 @@ import { ProcessDataModule } from './features/processData/processData.module';
     AuthModule,
     DatabaseModule,
     CertificatesModule,
-    ProcessDataModule,
+    
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
