@@ -67,7 +67,7 @@ export class DocumentStampController {
   }
 
   @ApiTags('ProcessData')
-  @Get('documentStamp/:startDate/:endDate')
+  @Get(':startDate/:endDate')
   async documentStamp(
     @Param('startDate') startDate: string,
     @Param('endDate') endDate: string,
