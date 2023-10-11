@@ -5,9 +5,9 @@ import * as MongoosePagination from 'mongoose-paginate-v2';
 import MongooseAggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 export enum CertificateState {
-  IN_PROCESS = 'IN_PROCESS',
+  IN_PROCESS = 'IN_PROCESS', // Por el momento no se usa
   COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
+  FAILED = 'FAILED',
   PENDING = 'PENDING',
 }
 
