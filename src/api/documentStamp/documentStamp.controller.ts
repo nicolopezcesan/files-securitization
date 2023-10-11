@@ -9,15 +9,21 @@ import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Response } from 'express';
+import { Model } from 'mongoose'; // Importa Model
+import { InjectModel } from '@nestjs/mongoose';
+import { CertificateDocument, CertificateState } from 'src/features/certificates/certificate.schema';
 
 @Controller('documentStamp')
 export class DocumentStampController {
   private certificados: string[] = [];
+  private certificadosProcesados: string[] = [];
+  private certificadosErroneos: string[] = [];
   
   constructor(    
     private readonly documentStampService: DocumentStampService,
     private readonly endpointService: EndpointService,
-    ) {}
+    @InjectModel('Certificate') private readonly certificateModel: Model<CertificateDocument>, 
+  ) {}
     
   @ApiTags('.pdf')
 
@@ -54,7 +60,7 @@ export class DocumentStampController {
         certificado = match[2];
       }
 
-      // Llama al servicio para procesar el archivo y guardar en Ganache
+      // Guardamos en blockchain
       const result = await this.documentStampService.stampDocument({ file, certificado });
 
       return result;
@@ -76,12 +82,22 @@ export class DocumentStampController {
       // Obtener los certificados
       const certificados = await this.obtenerTramitesCarnetManipulador(startDate, endDate);
 
-      // Procesar los certificados uno por uno
-      for (const numeroCertificado of certificados) {
-        await this.processCertificado(numeroCertificado);
+       // Procesar los certificados uno por uno
+       for (const numeroCertificado of certificados) {
+        try {
+          await this.processCertificado(numeroCertificado);
+        } catch (error) {
+          this.certificadosErroneos.push(numeroCertificado);
+        }
       }
 
-      return 'Proceso completo';
+      return {
+        mensaje: 'Proceso completo',
+        certificadosProcesados: this.certificadosProcesados,
+        certificadosErroneos: this.certificadosErroneos,
+        fechaInicio: startDate,
+        fechaFinal: endDate,
+      };
     } catch (error) {
       throw error;
     }
@@ -92,7 +108,7 @@ export class DocumentStampController {
       // Descargar el certificado
       const fileName = await this.obtenerCertificadoCarnetManipulador(numeroCertificado);
 
-      // Llama al servicio para procesar el archivo y guardar en Ganache
+      // Guardar en Blockchain
       const result = await this.documentStampService.stampDocument({
         file: {
           originalname: fileName,
@@ -101,13 +117,31 @@ export class DocumentStampController {
         certificado: numeroCertificado,
       });
 
+      this.certificadosProcesados.push(numeroCertificado);
       console.log(`Certificado ${numeroCertificado} procesado:`, result);
+     
+
     } catch (error) {
       console.error(`Error al procesar el certificado ${numeroCertificado}:`, error);
+      await this.saveCancelledCertificate(numeroCertificado);
       throw error;
+    }finally {
+      
+      
+      // Elimina el archivo temporal
+        const fileName = `${numeroCertificado}.pdf`;
+        const filePath = path.join('documentsTemp', fileName);
+        fs.unlinkSync(filePath);
+
+        await this.waitFor(1000); 
+
     }
   }
+    private async waitFor(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 
+
+  }
   private async obtenerTramitesCarnetManipulador(startDate: string, endDate: string): Promise<string[]> {
     try {
       const url = `https://interoperabilidad.cordoba.gob.ar/api/obtenerTramitesCarnetManipulador/${startDate}/${endDate}`;
@@ -158,6 +192,18 @@ export class DocumentStampController {
   }
 
 
-  
-  
+  private async saveCancelledCertificate(numeroCertificado: string) {
+    const cancelledCertificate = new this.certificateModel({
+      status: CertificateState.FAILED,
+      certificado: numeroCertificado,
+      transactionHash: null,
+      fileHash: null,
+      timestampDate: null,
+      timestampHash: null,
+      nameFile:`${numeroCertificado}.pdf`,
+      cid: null,
+    });
+
+    await cancelledCertificate.save();
+  }
 }

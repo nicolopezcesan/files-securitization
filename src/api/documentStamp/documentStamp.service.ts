@@ -75,7 +75,7 @@ export class DocumentStampService {
       //Status
       let status = CertificateState.PENDING;
       if (transactionHash === null || cid === null) {
-        status = CertificateState.IN_PROCESS;
+        status = CertificateState.FAILED;
       } else {
         status = CertificateState.COMPLETED;
       }
