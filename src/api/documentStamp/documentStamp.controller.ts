@@ -12,12 +12,14 @@ import { Response } from 'express';
 import { Model } from 'mongoose'; // Importa Model
 import { InjectModel } from '@nestjs/mongoose';
 import { CertificateDocument, CertificateState } from 'src/features/certificates/certificate.schema';
+import { CertificateRepository } from 'src/features/certificates/certificate.repository';
 
 @Controller('documentStamp')
 export class DocumentStampController {
   private certificados: string[] = [];
   private certificadosProcesados: string[] = [];
   private certificadosErroneos: string[] = [];
+  private readonly certificateRepository: CertificateRepository;
   
   constructor(    
     private readonly documentStampService: DocumentStampService,
@@ -75,9 +77,11 @@ export class DocumentStampController {
   @ApiTags('ProcessData')
   @Get(':startDate/:endDate')
   async documentStamp(
+    
     @Param('startDate') startDate: string,
     @Param('endDate') endDate: string,
   ) {
+    await this.endpointService.unlockAccount();
     try {
       // Obtener los certificados
       const certificados = await this.obtenerTramitesCarnetManipulador(startDate, endDate);
@@ -100,6 +104,8 @@ export class DocumentStampController {
       };
     } catch (error) {
       throw error;
+    }finally {
+      await this.endpointService.lockAccount(); 
     }
   }
 
@@ -133,7 +139,7 @@ export class DocumentStampController {
         const filePath = path.join('documentsTemp', fileName);
         fs.unlinkSync(filePath);
 
-        await this.waitFor(1000); 
+        await this.waitFor(100); 
 
     }
   }
@@ -205,5 +211,70 @@ export class DocumentStampController {
     });
 
     await cancelledCertificate.save();
+  }
+
+  @ApiTags('ProcessData')
+  @Get('processFailed')
+  async processFailedCertificates() {
+    await this.endpointService.unlockAccount();
+    try {
+      const failedCertificates = await this.certificateModel.find({ status: CertificateState.FAILED }).exec();
+      const processedCertificates = [];
+
+      for (const certificate of failedCertificates) {
+        if (!processedCertificates.includes(certificate.certificado)) {
+          const result = await this.processCertificate(certificate.certificado);
+          processedCertificates.push(certificate.certificado);
+          if (result.success) {
+            certificate.status = CertificateState.COMPLETED;
+          } else {
+            certificate.status = CertificateState.FAILED;
+          }
+          certificate.transactionHash = result.transactionHash;
+          certificate.fileHash = result.fileHash;
+          certificate.timestampHash = result.timestampHash;
+          certificate.nameFile = result.nameFile;
+          certificate.cid = result.cid;
+          await certificate.deleteOne();
+        } 
+      }
+
+      return {
+        mensaje: 'Proceso de certificados fallidos completo',
+        certificadosProcesados: processedCertificates,
+        fechaInicio: new Date(),
+        fechaFinal: new Date(),
+      };
+    } catch (error) {
+      throw error;
+    } finally {
+      await this.endpointService.lockAccount();
+    }
+  }
+  private async processCertificate(numeroCertificado: string) {
+    try {
+      // Descargar el certificado
+      const fileName = await this.obtenerCertificadoCarnetManipulador(numeroCertificado);
+
+      // Guardar en Blockchain
+      const result = await this.documentStampService.stampDocument({
+        file: {
+          originalname: fileName,
+          buffer: fs.readFileSync(path.join('documentsTemp', fileName)),
+        },
+        certificado: numeroCertificado,
+      });
+
+      // Eliminar el archivo temporal
+      const filePath = path.join('documentsTemp', fileName);
+      fs.unlinkSync(filePath);
+      await this.waitFor(100);
+
+      return result;
+    } catch (error) {
+      console.error(`Error al procesar el certificado ${numeroCertificado}:`, error);
+      await this.saveCancelledCertificate(numeroCertificado);
+      throw error;
+    }
   }
 }
