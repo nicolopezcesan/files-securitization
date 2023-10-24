@@ -190,7 +190,7 @@ export class EndpointService {
     const accounts = await this.web3.eth.getAccounts();
     const mainAccount = accounts[0];
     try {
-      await this.web3.eth.personal.unlockAccount(mainAccount, this.secretKey, 0);
+      await this.web3.eth.personal.unlockAccount(mainAccount, this.secretKey, 1500000);
       console.log('Cuenta Desbloqueada');
     } catch (error) {
       console.error('Error al desbloquear la cuenta:', error);
