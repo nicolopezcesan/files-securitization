@@ -62,7 +62,10 @@ export class EndpointController {
       // Información Acuse
       const data0 = await this.endpointService.getData0FromDecodedTransaction(hash);
       const datahash = data0.timestampDate;
-      const dataSecuritizacion = new Date(datahash).toLocaleString();
+      const fecha = new Date(datahash);
+      const hora = fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const amPM = fecha.getHours() < 12 ? 'AM' : 'PM';
+      const dataSecuritizacion = `${fecha.toLocaleDateString()} ${hora} ${amPM}`;
 
 
       // Obtener el logo de Inmuta
@@ -116,11 +119,12 @@ export class EndpointController {
     doc.moveDown();
 
     doc.fillColor('white')
-    doc.text(`Transacción Hash: ${hash}`);
+    doc.text(`Transacción Hash:`);
+    doc.text(` ${hash}`);
     doc.fillColor('black');
     doc.moveDown();
     doc.moveDown();
-
+    doc.moveDown();
     doc.text('Contenido de la transacción:');
     doc.moveDown();
     doc.text(JSON.stringify(data0, null, 2));
@@ -128,7 +132,7 @@ export class EndpointController {
     doc.moveDown();
     doc.moveDown();
 
-    doc.text(`Fecha de Consulta: ${new Date().toLocaleString()}`);
+    doc.text(`Fecha de Consulta: ${new Date().toLocaleString()} ${amPM}`);
 
 
       // Finaliza el documento PDF

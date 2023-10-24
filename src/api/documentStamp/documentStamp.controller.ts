@@ -69,9 +69,7 @@ export class DocumentStampController {
     } catch (error) {
       console.error('Error al procesar el archivo:', error);
       throw new Error('Error al procesar el archivo.');
-    } finally {
-      await this.endpointService.lockAccount(); 
-    }
+    } 
   }
 
   @ApiTags('ProcessData')
@@ -104,8 +102,6 @@ export class DocumentStampController {
       };
     } catch (error) {
       throw error;
-    }finally {
-      await this.endpointService.lockAccount(); 
     }
   }
 
@@ -247,9 +243,7 @@ export class DocumentStampController {
       };
     } catch (error) {
       throw error;
-    } finally {
-      await this.endpointService.lockAccount();
-    }
+    } 
   }
   private async processCertificate(numeroCertificado: string) {
     try {
