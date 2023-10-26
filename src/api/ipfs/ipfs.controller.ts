@@ -3,29 +3,29 @@ import { Response } from 'express';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '../auth/auth.guard';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('admin/ipfs')
 export class IpfsController {
   constructor(
     private readonly configService: ConfigService,
-    ) {}
+  ) { }
 
   @ApiTags('.pdf')
   @UseGuards(AuthGuard)
   @Post('download/:cid')
-  @ApiOperation({summary: '.PDF', description: 'Obtener el documento en la blockchain' })
-
+  @ApiOperation({ summary: '.PDF', description: 'Obtener el documento en la blockchain' })
+    @ApiBearerAuth('bearer')
   async downloadFile(@Param('cid') cid: string, @Res() res: Response) {
     try {
       const ipfsNodeUrl = this.configService.get('IPFS_NODE_URL');
-      
+
       const ipfsApiUrl = `${ipfsNodeUrl}/api/v0/cat?arg=${cid}`;
-      
+
       const response = await axios.post(ipfsApiUrl, null, {
-        responseType: 'stream', 
+        responseType: 'stream',
       });
-      
+
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename=${cid}.pdf`);
 

@@ -12,14 +12,14 @@ export class AuthGuard implements CanActivate {
   ) {
     this.verifier = CognitoJwtVerifier.create({
       tokenUse: null,
-      clientId: this.configService.get('COGNITO_CLIENT_ID'),
-      userPoolId: this.configService.get('COGNITO_USER_POOL_ID'),
+      clientId: this.configService.get('AWS_COGNITO_CLIENT_ID'),
+      userPoolId: this.configService.get('AWS_COGNITO_USER_POOL_ID'),
     });
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const [, token] = request.headers.authorization?.split(' ');
+    const [, token] = request.headers.authorization?.split(' ') ?? [];
 
     try {
       await this.verifier.verify(token);

@@ -60,28 +60,16 @@ export class EndpointController {
   async generateAcuse(@Param('hash') hash: string, @Res() res): Promise<void> {
     try {
       // Información Acuse
-      const decodedTransactionData = await this.endpointService.getDecodedTransactionData(hash);
       const data0 = await this.endpointService.getData0FromDecodedTransaction(hash);
-      const datahash = data0.timestamp;
-      const fecha = new Date(Number(datahash)); 
-      const dataSecuritizacion = fecha.toISOString();
-
-      const timestamp = Date.now();
-      const fechaConsulta = new Date(timestamp).toLocaleString();
-
-      // Genera el contenido del archivo de acuse en formato de texto
-      const acuseContent = `Comprobante de Operación\n----------------------------------------------------------\n
-      Securitizado en Inmuta el día ${new Date(timestamp).toISOString()} \n
-      Transacción Hash: ${hash}
-      \n
-      Información del Bloque: ${JSON.stringify(data0)} \n
-    
-      ----------------------------------------------------------\n
-      Fecha de Consulta: ${fechaConsulta}\n\n`;
+      const datahash = data0.timestampDate;
+      const fecha = new Date(datahash);
+      const hora = fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const amPM = fecha.getHours() < 12 ? 'AM' : 'PM';
+      const dataSecuritizacion = `${fecha.toLocaleDateString()} ${hora} ${amPM}`;
 
 
       // Obtener el logo de Inmuta
-      const logoUrl = 'https://raw.githubusercontent.com/pedrotapia2416/img/main/logo.png';
+      const logoUrl = 'https://dev-backoffice.inmuta.com/assets/img/image%202.png';
       const logoResponse = await rp.get({ url: logoUrl, encoding: null });
       
 
@@ -111,39 +99,40 @@ export class EndpointController {
       doc.rect(margenIzquierdo, margenSuperior, anchoUtilData, altoUtilData).fill('#EAEAEA'); 
 
       // Rectangulo transaction hash
-      doc.rect(margenIzquierdo, margenSuperior, anchoUtil, altoUtil).fill('#0511F2'); 
+      doc.rect(margenIzquierdo, margenSuperior, anchoUtil, altoUtil).fill('#0511F2');         
+      doc.moveDown();
 
-      
-
-
-
-              
-
-    doc.image(logoResponse, { width: 470, height: 80 });
+    doc.image(logoResponse, { width: 110, height: 30 });
+    doc.moveDown();
+    doc.moveDown();
+    
 
     doc.font('Helvetica-Bold').fontSize(14).fillColor('#0511F2').text('COMPROBANTE DE OPERACIÓN', { align: 'center' });
     doc.moveDown();
 
     doc.font('Helvetica-Bold').fontSize(12).fillColor('black');
-    doc.text(`Securitizado en Inmuta el día ${dataSecuritizacion}`, { align: 'center' });
-    doc.font('Helvetica')
+    doc.text(`Securitizado en Inmuta el día ${dataSecuritizacion}`, { align: 'right' });
+    doc.font('Helvetica').fontSize(11);
+    doc.text(' GMT-0300 (hora estándar de Argentina)', { align: 'right' });
+    
     doc.moveDown();
     doc.moveDown();
 
     doc.fillColor('white')
-    doc.text(`Transacción Hash: ${hash}`);
+    doc.text(`Transacción Hash:`);
+    doc.text(` ${hash}`);
     doc.fillColor('black');
     doc.moveDown();
     doc.moveDown();
-
-    doc.text('Información del Bloque:');
+    doc.moveDown();
+    doc.text('Contenido de la transacción:');
     doc.moveDown();
     doc.text(JSON.stringify(data0, null, 2));
     doc.moveDown();
     doc.moveDown();
     doc.moveDown();
 
-    doc.text(`Fecha de Consulta: ${new Date().toLocaleString()}`);
+    doc.text(`Fecha de Consulta: ${new Date().toLocaleString()} ${amPM}`);
 
 
       // Finaliza el documento PDF

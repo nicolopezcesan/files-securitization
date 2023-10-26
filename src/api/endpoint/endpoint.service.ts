@@ -50,6 +50,7 @@ export class EndpointService {
 
   //Guardamos los datos en la Blockchain
   async storeData(data: any): Promise<string> {
+    
     const jsonData = JSON.stringify(data);
     console.log('JSON Data:', jsonData);
 
@@ -189,10 +190,11 @@ export class EndpointService {
     const accounts = await this.web3.eth.getAccounts();
     const mainAccount = accounts[0];
     try {
-      await this.web3.eth.personal.unlockAccount(mainAccount,this.secretKey, 15000);
-      console.log(' Cuenta Desbloqueada ');
+      await this.web3.eth.personal.unlockAccount(mainAccount, this.secretKey, 1500000);
+      console.log('Cuenta Desbloqueada');
     } catch (error) {
-      console.log('ERROR AL DESBLOQUEAR CUENTA', error);
+      console.error('Error al desbloquear la cuenta:', error);
+      throw new Error('Error al desbloquear la cuenta');
     }
 
     return 'Cuenta desbloqueada';
