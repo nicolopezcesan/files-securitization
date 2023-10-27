@@ -15,7 +15,7 @@ export class DocumentStampService {
     private readonly endpointService: EndpointService,
     private readonly configService: ConfigService,
     @InjectModel(Certificate.name)
-    private readonly stampedDocumentModel: Model<Certificate>,
+    private readonly stampedDocumentModel: Model<Certificate>,    
   ) { }
 
   async stampDocument({ file, certificado }: { file: Multer.File; certificado: string | null }): Promise<any> {
@@ -99,5 +99,16 @@ export class DocumentStampService {
       throw new Error('Error al procesar el archivo.');
     }
   }
-  
+
+
+
+   findDuplicates(arr, property) {
+    const duplicates = arr.reduce((acc, obj, index, array) => {
+      if (array.slice(index + 1).some((compareObj) => compareObj[property] === obj[property])) {
+        acc.push(obj);
+      }
+      return acc;
+    }, []);
+    return duplicates;
+  }
 }
