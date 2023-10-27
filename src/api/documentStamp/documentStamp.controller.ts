@@ -1,26 +1,20 @@
-import { Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Multer } from 'multer';
 import { DocumentStampService } from './documentStamp.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { EndpointService } from '../endpoint/endpoint.service'; 
-
 import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Response } from 'express';
-import { Model } from 'mongoose'; // Importa Model
+import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CertificateDocument, CertificateState } from 'src/features/certificates/certificate.schema';
-import { CertificateRepository } from 'src/features/certificates/certificate.repository';
 
 @Controller('documentStamp')
 export class DocumentStampController {
-  private certificados: string[] = [];
   private certificadosProcesados: string[] = [];
-  private certificadosErroneos: string[] = [];
-  private readonly certificateRepository: CertificateRepository;
-  
+  private certificadosErroneos: string[] = []; 
   constructor(    
     private readonly documentStampService: DocumentStampService,
     private readonly endpointService: EndpointService,
@@ -28,10 +22,8 @@ export class DocumentStampController {
   ) {}
      
   @ApiTags('.pdf')
-
   @Post('document')
   @ApiOperation({summary: '.PDF', description: 'Securitizar documento en la blockchain' })
-
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -52,17 +44,10 @@ export class DocumentStampController {
         throw new Error('No se proporcionó un archivo.');
       }
 
-      // Extraer el número del nombre del archivo
-      const fileName = file.originalname;
-      const match = fileName.match(/^(.*?)\s+(\d+)/);
-      let certificado: string | null = null; //
-      let nameAndSurname: string | null = null;
-      if (match) {
-        nameAndSurname = match[1];
-        certificado = match[2];
-      }
+      // Extraer el número y nombre nombre del archivo en caso de corresponder
+      const certificado = await this.documentStampService.numberCertificate(file);
 
-      // Guardamos en blockchain
+      // Procesamos
       const result = await this.documentStampService.stampDocument({ file, certificado });
 
       return result;
@@ -120,7 +105,7 @@ export class DocumentStampController {
       // Descargar el certificado
       const fileName = await this.obtenerCertificadoCarnetManipulador(numeroCertificado);
 
-      // Guardar en Blockchain
+      // Procesamos
       const result = await this.documentStampService.stampDocument({
         file: {
           originalname: fileName,
@@ -180,13 +165,13 @@ export class DocumentStampController {
         password,
       },
       responseType: 'arraybuffer',
-      maxContentLength: Infinity, 
+      maxContentLength: Infinity,       
     });
 
     if (response.headers['content-type'] === 'application/octet-stream') {
       if (response.data.length === 0) {
         console.error(`Certificado Obtenido inválido. El certificado ${numeroCertificado} está vacío.`);
-        throw new Error('El certificado está vacío.');
+        throw new Error('El certificado está vacío. ');
       }
 
       const fileName = `${numeroCertificado}.pdf`;
@@ -194,10 +179,16 @@ export class DocumentStampController {
       fs.writeFileSync(filePath, response.data);
       return fileName;
     } else {
-      throw new Error(`El certificado ${numeroCertificado} no es un archivo.`);
+      console.error(`Error al obtener certificado de API externa ${numeroCertificado} `);
+      throw new Error(`Error al obtener certificado de API externa ${numeroCertificado}`);
     }
   } catch (error) {
-    console.error('Error al obtener certificado de API externa:', error); 
+    if (error.response && error.response.status === 500) {
+      console.error("Error al obtener archivo de API externa");
+    } else {
+      // No mostrar detalles adicionales del error
+      console.error("Error al obtener archivo de API externa");
+    }
     throw error;
   }
 }
