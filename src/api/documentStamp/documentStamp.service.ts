@@ -100,15 +100,17 @@ export class DocumentStampService {
     }
   }
 
-
-
-   findDuplicates(arr, property) {
-    const duplicates = arr.reduce((acc, obj, index, array) => {
-      if (array.slice(index + 1).some((compareObj) => compareObj[property] === obj[property])) {
-        acc.push(obj);
-      }
-      return acc;
-    }, []);
-    return duplicates;
+  numberCertificate(file:any){
+     const fileName = file.originalname;
+      const match = fileName.match(/^(.*?)\s+(\d+)/);
+      let certificado: string | null = null; //
+      let nameAndSurname: string | null = null;
+      if (match) {
+        nameAndSurname = match[1];
+        certificado = match[2];
+      } return certificado;
   }
+
+
+
 }

@@ -64,8 +64,7 @@ export class EndpointController {
       const datahash = data0.timestampDate;
       const fecha = new Date(datahash);
       const hora = fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const amPM = fecha.getHours() < 12 ? 'AM' : 'PM';
-      const dataSecuritizacion = `${fecha.toLocaleDateString()} ${hora} ${amPM}`;
+      const dataSecuritizacion = `${fecha.toLocaleDateString()} ${hora} `;
 
 
       // Obtener el logo de Inmuta
@@ -132,7 +131,7 @@ export class EndpointController {
     doc.moveDown();
     doc.moveDown();
 
-    doc.text(`Fecha de Consulta: ${new Date().toLocaleString()} ${amPM}`);
+    doc.text(`Fecha de Consulta: ${new Date().toLocaleString()} `);
 
 
       // Finaliza el documento PDF
