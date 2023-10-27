@@ -12,6 +12,7 @@ export enum CertificateState {
 }
 
 @Schema({ timestamps: { createdAt: 'process_date', updatedAt: false } }) 
+
 export class Certificate extends Document {
   @Prop({ type: String, enum: Object.values(CertificateState) }) 
   status: string;

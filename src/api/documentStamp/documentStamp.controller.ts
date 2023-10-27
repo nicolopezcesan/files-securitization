@@ -1,37 +1,29 @@
-import { Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Multer } from 'multer';
 import { DocumentStampService } from './documentStamp.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { EndpointService } from '../endpoint/endpoint.service'; 
-
 import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Response } from 'express';
-import { Model } from 'mongoose'; // Importa Model
+import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CertificateDocument, CertificateState } from 'src/features/certificates/certificate.schema';
-import { CertificateRepository } from 'src/features/certificates/certificate.repository';
 
 @Controller('documentStamp')
 export class DocumentStampController {
-  private certificados: string[] = [];
   private certificadosProcesados: string[] = [];
-  private certificadosErroneos: string[] = [];
-  private readonly certificateRepository: CertificateRepository;
-  
+  private certificadosErroneos: string[] = []; 
   constructor(    
     private readonly documentStampService: DocumentStampService,
     private readonly endpointService: EndpointService,
     @InjectModel('Certificate') private readonly certificateModel: Model<CertificateDocument>, 
   ) {}
-    
+     
   @ApiTags('.pdf')
-
   @Post('document')
   @ApiOperation({summary: '.PDF', description: 'Securitizar documento en la blockchain' })
-
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -52,17 +44,10 @@ export class DocumentStampController {
         throw new Error('No se proporcionó un archivo.');
       }
 
-      // Extraer el número del nombre del archivo
-      const fileName = file.originalname;
-      const match = fileName.match(/^(.*?)\s+(\d+)/);
-      let certificado: string | null = null; //
-      let nameAndSurname: string | null = null;
-      if (match) {
-        nameAndSurname = match[1];
-        certificado = match[2];
-      }
+      // Extraer el número y nombre nombre del archivo en caso de corresponder
+      const certificado = await this.documentStampService.numberCertificate(file);
 
-      // Guardamos en blockchain
+      // Procesamos
       const result = await this.documentStampService.stampDocument({ file, certificado });
 
       return result;
@@ -75,28 +60,32 @@ export class DocumentStampController {
   @ApiTags('ProcessData')
   @Get(':startDate/:endDate')
   async documentStamp(
-    
     @Param('startDate') startDate: string,
     @Param('endDate') endDate: string,
   ) {
     await this.endpointService.unlockAccount();
     try {
       // Obtener los certificados
-      const certificados = await this.obtenerTramitesCarnetManipulador(startDate, endDate);
+        const certificados = await this.obtenerTramitesCarnetManipulador(startDate, endDate);
 
-       // Procesar los certificados uno por uno
-       for (const numeroCertificado of certificados) {
-        try {
-          await this.processCertificado(numeroCertificado);
-        } catch (error) {
-          this.certificadosErroneos.push(numeroCertificado);
+        // Verificar si los certificados están en la base de datos
+        const certificadosNoCargados = await this.verificarCertificadosEnDB(certificados);
+
+        // Procesar los certificados uno por uno
+        for (const numeroCertificado of certificadosNoCargados) {
+          try {
+            await this.processCertificado(numeroCertificado);
+            this.certificadosProcesados.push(numeroCertificado); // Agregar a la lista de procesados
+          } catch (error) {
+            this.certificadosErroneos.push(numeroCertificado);
+          }
         }
-      }
 
       return {
         mensaje: 'Proceso completo',
         certificadosProcesados: this.certificadosProcesados,
         certificadosErroneos: this.certificadosErroneos,
+        certificadosNoCargados, // Agregar los certificados no cargados en la respuesta
         fechaInicio: startDate,
         fechaFinal: endDate,
       };
@@ -105,12 +94,18 @@ export class DocumentStampController {
     }
   }
 
+  private async verificarCertificadosEnDB(certificados: string[]): Promise<string[]> {
+    const certificadosEnDB = await this.certificateModel.find({ certificado: { $in: certificados } }).distinct('certificado').exec();
+    const certificadosNoCargados = certificados.filter(certificado => !certificadosEnDB.includes(certificado));
+    return certificadosNoCargados;
+  }
+
   private async processCertificado(numeroCertificado: string) {
     try {
       // Descargar el certificado
       const fileName = await this.obtenerCertificadoCarnetManipulador(numeroCertificado);
 
-      // Guardar en Blockchain
+      // Procesamos
       const result = await this.documentStampService.stampDocument({
         file: {
           originalname: fileName,
@@ -134,16 +129,9 @@ export class DocumentStampController {
         const fileName = `${numeroCertificado}.pdf`;
         const filePath = path.join('documentsTemp', fileName);
         fs.unlinkSync(filePath);
-
-        await this.waitFor(100); 
-
     }
   }
-    private async waitFor(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-
-
-  }
+    
   private async obtenerTramitesCarnetManipulador(startDate: string, endDate: string): Promise<string[]> {
     try {
       const url = `https://interoperabilidad.cordoba.gob.ar/api/obtenerTramitesCarnetManipulador/${startDate}/${endDate}`;
@@ -166,32 +154,44 @@ export class DocumentStampController {
   }
 
   private async obtenerCertificadoCarnetManipulador(numeroCertificado: string): Promise<string> {
-    try {
-      const username = 'SQR_badi_srl';
-      const password = 'iuoERT85dau';
+  try {
+    const username = 'SQR_badi_srl';
+    const password = 'iuoERT85dau';
 
-      const url = `https://interoperabilidad.cordoba.gob.ar/api/obtenerCertificadoCarnetManipulador/${numeroCertificado}`;
-      const response = await axios.get(url, {
-        auth: {
-          username,
-          password,
-        },
-        responseType: 'arraybuffer',
-        maxContentLength: Infinity, //Test: Para evitar la limitacion del tamaño de archivos.
-      });
+    const url = `https://interoperabilidad.cordoba.gob.ar/api/obtenerCertificadoCarnetManipulador/${numeroCertificado}`;
+    const response = await axios.get(url, {
+      auth: {
+        username,
+        password,
+      },
+      responseType: 'arraybuffer',
+      maxContentLength: Infinity,       
+    });
 
-      if (response.headers['content-type'] === 'application/octet-stream') {
-        const fileName = `${numeroCertificado}.pdf`;
-        const filePath = path.join('documentsTemp', fileName);
-        fs.writeFileSync(filePath, response.data);
-        return fileName;
-      } else {
-        throw new Error(`El certificado ${numeroCertificado} no es un archivo.`);
+    if (response.headers['content-type'] === 'application/octet-stream') {
+      if (response.data.length === 0) {
+        console.error(`Certificado Obtenido inválido. El certificado ${numeroCertificado} está vacío.`);
+        throw new Error('El certificado está vacío. ');
       }
-    } catch (error) {
-      throw error;
+
+      const fileName = `${numeroCertificado}.pdf`;
+      const filePath = path.join('documentsTemp', fileName);
+      fs.writeFileSync(filePath, response.data);
+      return fileName;
+    } else {
+      console.error(`Error al obtener certificado de API externa ${numeroCertificado} `);
+      throw new Error(`Error al obtener certificado de API externa ${numeroCertificado}`);
     }
+  } catch (error) {
+    if (error.response && error.response.status === 500) {
+      console.error("Error al obtener archivo de API externa");
+    } else {
+      // No mostrar detalles adicionales del error
+      console.error("Error al obtener archivo de API externa");
+    }
+    throw error;
   }
+}
 
 
   private async saveCancelledCertificate(numeroCertificado: string) {
@@ -216,40 +216,47 @@ export class DocumentStampController {
     try {
       const failedCertificates = await this.certificateModel.find({ status: CertificateState.FAILED }).exec();
       const processedCertificates = [];
-
+      const errors = [];
+  
       for (const certificate of failedCertificates) {
         if (!processedCertificates.includes(certificate.certificado)) {
-          const result = await this.processCertificate(certificate.certificado);
-          processedCertificates.push(certificate.certificado);
-          if (result.success) {
-            certificate.status = CertificateState.COMPLETED;
-          } else {
-            certificate.status = CertificateState.FAILED;
+          try {
+            const result = await this.processCertificate(certificate.certificado);
+            if (result.success) {
+              certificate.status = CertificateState.COMPLETED;
+            } else {
+              certificate.status = CertificateState.FAILED;
+            }
+            certificate.transactionHash = result.transactionHash;
+            certificate.fileHash = result.fileHash;
+            certificate.timestampHash = result.timestampHash;
+            certificate.nameFile = result.nameFile;
+            certificate.cid = result.cid;
+            await certificate.deleteOne();
+            processedCertificates.push(certificate.certificado);
+          } catch (error) {
+            errors.push({ certificado: certificate.certificado, error: error.message });
           }
-          certificate.transactionHash = result.transactionHash;
-          certificate.fileHash = result.fileHash;
-          certificate.timestampHash = result.timestampHash;
-          certificate.nameFile = result.nameFile;
-          certificate.cid = result.cid;
-          await certificate.deleteOne();
-        } 
+        }
       }
-
+  
       return {
         mensaje: 'Proceso de certificados fallidos completo',
         certificadosProcesados: processedCertificates,
+        certificadosConErrores: errors,
         fechaInicio: new Date(),
         fechaFinal: new Date(),
       };
     } catch (error) {
       throw error;
-    } 
+    }
   }
+
   private async processCertificate(numeroCertificado: string) {
     try {
       // Descargar el certificado
       const fileName = await this.obtenerCertificadoCarnetManipulador(numeroCertificado);
-
+  
       // Guardar en Blockchain
       const result = await this.documentStampService.stampDocument({
         file: {
@@ -258,17 +265,68 @@ export class DocumentStampController {
         },
         certificado: numeroCertificado,
       });
-
+  
       // Eliminar el archivo temporal
       const filePath = path.join('documentsTemp', fileName);
       fs.unlinkSync(filePath);
-      await this.waitFor(100);
-
+      
+  
       return result;
     } catch (error) {
       console.error(`Error al procesar el certificado ${numeroCertificado}:`, error);
       await this.saveCancelledCertificate(numeroCertificado);
       throw error;
+    } 
+  }
+
+  @ApiTags('ProcessData')
+  @Get('deleteAllDuplicateCertificates')
+  async deleteAllDuplicateCertificates() {
+    try {
+      const certificates = await this.certificateModel.find().exec();
+      const uniqueCertificados = [];
+      const duplicates = [];
+
+      certificates.forEach((certificate) => {
+             
+        const existingCert = uniqueCertificados.find((c) => c.certificado === certificate.certificado);
+
+        if (existingCert) {
+          const existingCertDate = new Date(existingCert.timestampDate);
+          const certificateDate = new Date(certificate.timestampDate);
+
+          if (certificateDate < existingCertDate) {
+            duplicates.push(existingCert);
+            uniqueCertificados.splice(uniqueCertificados.indexOf(existingCert), 1);
+            uniqueCertificados.push(certificate);
+          } else {
+            duplicates.push(certificate);
+          }
+        } else {
+          uniqueCertificados.push(certificate);
+        }
+      });
+
+      if (duplicates.length > 0) {
+        for (const duplicate of duplicates) {
+          await this.certificateModel.findByIdAndDelete(duplicate._id).exec();
+        }
+
+        return {
+          mensaje: 'Todos los certificados duplicados han sido eliminados',
+          certificadosEliminados: duplicates,
+        };
+      } else {
+        return {
+          mensaje: 'No se encontraron certificados duplicados para eliminar',
+          certificadosEliminados: [],
+        };
+      }
+    } catch (error) {
+      throw error;
     }
   }
+
 }
+
+

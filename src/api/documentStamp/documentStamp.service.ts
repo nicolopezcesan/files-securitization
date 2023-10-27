@@ -15,7 +15,7 @@ export class DocumentStampService {
     private readonly endpointService: EndpointService,
     private readonly configService: ConfigService,
     @InjectModel(Certificate.name)
-    private readonly stampedDocumentModel: Model<Certificate>,
+    private readonly stampedDocumentModel: Model<Certificate>,    
   ) { }
 
   async stampDocument({ file, certificado }: { file: Multer.File; certificado: string | null }): Promise<any> {
@@ -99,5 +99,18 @@ export class DocumentStampService {
       throw new Error('Error al procesar el archivo.');
     }
   }
-  
+
+  numberCertificate(file:any){
+     const fileName = file.originalname;
+      const match = fileName.match(/^(.*?)\s+(\d+)/);
+      let certificado: string | null = null; //
+      let nameAndSurname: string | null = null;
+      if (match) {
+        nameAndSurname = match[1];
+        certificado = match[2];
+      } return certificado;
+  }
+
+
+
 }
