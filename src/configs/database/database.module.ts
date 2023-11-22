@@ -11,7 +11,9 @@ import { Certificate, CertificateSchema } from 'src/features/certificates/certif
       }),
       inject: [ConfigService],
     }),
-    MongooseModule.forFeature([{ name: Certificate.name, schema: CertificateSchema  }]),
+    MongooseModule.forFeature([
+      { name: Certificate.name, schema: CertificateSchema  },      
+    ]),
   ],
   exports: [MongooseModule],
 })
