@@ -6,8 +6,6 @@ import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AccountUnlockService } from 'src/configs/blockchain/blockchain.service';
 import { AuthGuard } from '../auth/auth.guard';
 
-
-
 @ApiTags('Carnet de manipulación de alimentos')
 @Controller('')
 export class DocumentStampController {  

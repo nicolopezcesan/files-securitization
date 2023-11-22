@@ -28,14 +28,12 @@ export class CertificateController {
     return response;
   }
 
- 
   // @UseGuards(AuthGuard)
   @Get('count')
   async countByState(): Promise<{ certificates: TCertificateByState[] }> {
     const response = await this.certificatesService.countCertificateByState();
     return response;
   }
-
   
   @Delete('delete-all')
   @ApiQuery({
@@ -43,18 +41,7 @@ export class CertificateController {
     description: 'Clave para autorizar la eliminación.',
     required: true,
   })
-  async deleteAllCertificates(
-    @Query('clave') clave: string, ): 
-    Promise<{ message: string }> {
-    try {      
-      if (clave !== 'D3l3t3d') {
-        throw new Error('Clave incorrecta para realizar esta acción.');
-      }
-  
-      await this.certificateModel.deleteMany({});
-      return { message: 'Todos los datos de la colección han sido eliminados.' };
-    } catch (error) {
-      throw new Error('Error al eliminar los datos de la colección.');
-    }
+  async deleteAllCertificates(@Query('clave') clave: string): Promise<{ message: string }> {
+    return await this.certificatesService.deleteAllCertificates(clave);
   }
 }

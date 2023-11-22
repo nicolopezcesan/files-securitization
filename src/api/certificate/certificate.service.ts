@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Certificate, CertificateDocument, CertificateState } from 'src/features/certificates/certificate.schema';
 import { CertificateRepository, TCertificateByState } from 'src/features/certificates/certificate.repository';
-import { PaginateResult } from 'mongoose';
+import { Model, PaginateResult } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class CertificatesService {
   constructor(
-    private CertificateRepository: CertificateRepository
+    private CertificateRepository: CertificateRepository,
+    @InjectModel(Certificate.name) private certificateModel: Model<CertificateDocument>
   ) { }
 
   async findAll(params: any = {}): Promise<PaginateResult<CertificateDocument>> {
@@ -52,6 +54,20 @@ export class CertificatesService {
     })
 
     return { certificates: amountByStatus };
+  }
+
+
+  async deleteAllCertificates(clave: string): Promise<{ message: string }> {
+    try {
+      if (clave !== 'D3l3t3d') {
+        throw new Error('Clave incorrecta para realizar esta acción.');
+      }
+
+      await this.certificateModel.deleteMany({});
+      return { message: 'Todos los datos de la colección han sido eliminados.' };
+    } catch (error) {
+      throw new Error('Error al eliminar los datos de la colección.');
+    }
   }
 }
 

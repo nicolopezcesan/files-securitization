@@ -13,7 +13,6 @@ export class ContractController {
   async deployContract(@Res() res): Promise<void> {
     try {
       const contractAddress = await this.contractService.deployContract();
-
       res.send(contractAddress);
     } catch (error) {
       console.error('Error al desplegar el contrato:', error);
