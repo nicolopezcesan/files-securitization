@@ -11,17 +11,15 @@ export class IpfsController {
     private readonly configService: ConfigService,
   ) { }
 
-  @ApiTags('.pdf')
-  @UseGuards(AuthGuard)
+  @ApiTags('Carnet de manipulación de alimentos')
+ // @UseGuards(AuthGuard)
   @Post('download/:cid')
   @ApiOperation({ summary: '.PDF', description: 'Obtener el documento en la blockchain' })
     @ApiBearerAuth('bearer')
   async downloadFile(@Param('cid') cid: string, @Res() res: Response) {
     try {
       const ipfsNodeUrl = this.configService.get('IPFS_NODE_URL');
-
       const ipfsApiUrl = `${ipfsNodeUrl}/api/v0/cat?arg=${cid}`;
-
       const response = await axios.post(ipfsApiUrl, null, {
         responseType: 'stream',
       });

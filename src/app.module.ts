@@ -14,6 +14,7 @@ import { AuthModule } from './features/auth/auth.module';
 import { DatabaseModule } from './configs/database/database.module';
 import { CertificatesModule } from './features/certificates/certificates.module';
 import { ProcessDataModule } from './features/processData/processData.module';
+import { ContractModule } from './features/contract/contract.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ProcessDataModule } from './features/processData/processData.module';
     DatabaseModule,
     CertificatesModule,
     ProcessDataModule,
+    ContractModule,
     
   ],
   controllers: [AppController, HealthController],

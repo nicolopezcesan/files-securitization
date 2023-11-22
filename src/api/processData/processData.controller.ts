@@ -1,37 +1,21 @@
-import { Controller, Get, Param, Res  } from '@nestjs/common';
-import axios from 'axios';
+import { Controller, Get, Param } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { ProcessDataService } from './processData.service';
 
-@Controller('NumerosCertificados')
-export class CertificadosController {
-  private certificados: string[] = []; // Variable para almacenar la lista de certificados
+
+@ApiTags('Carnet de manipulación de alimentos')
+@Controller('')
+export class ProcessDataController {
+  constructor(private readonly processDataService: ProcessDataService) {}
 
   @Get('obtenerTramitesCarnetManipulador/:startDate/:endDate')
   async obtenerTramitesCarnetManipulador(
     @Param('startDate') startDate: string,
     @Param('endDate') endDate: string,
   ) {
-    try {
-      const url = `https://interoperabilidad.cordoba.gob.ar/api/obtenerTramitesCarnetManipulador/${startDate}/${endDate}`;
-
-      // Credenciales
-      const username = 'SQR_badi_srl';
-      const password = 'iuoERT85dau';
-
-      const response = await axios.get(url, {
-        auth: {
-          username,
-          password,
-        },
-      });
-
-      this.certificados = response.data.lista; // Almacena la lista de certificados
-
-      return this.certificados; // Devuelve la lista de certificados
-    } catch (error) {
-      throw error;
-    }
+    return this.processDataService.obtenerTramitesCarnetManipulador(startDate, endDate);
+  }catch (error) {
+    console.error('Error del Controlador:', error.message);
+    return { error: 'Error interno del servidor' }; 
   }
-
-  
-  
 }

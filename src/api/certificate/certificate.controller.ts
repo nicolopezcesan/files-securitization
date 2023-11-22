@@ -7,6 +7,7 @@ import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TCertificateByState } from 'src/features/certificates/certificate.repository';
 import { InjectModel } from '@nestjs/mongoose';
 
+@ApiTags('Carnet de manipulación de alimentos')
 @Controller('certificates')
 export class CertificateController {
   constructor(
@@ -14,8 +15,8 @@ export class CertificateController {
     @InjectModel(Certificate.name) private certificateModel: Model<CertificateDocument>
     ) {}
   
-
-  @UseGuards(AuthGuard)
+   
+  // @UseGuards(AuthGuard)
   @Get()
   async findAll(
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -27,21 +28,20 @@ export class CertificateController {
     return response;
   }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Get('count')
   async countByState(): Promise<{ certificates: TCertificateByState[] }> {
     const response = await this.certificatesService.countCertificateByState();
     return response;
   }
-
-  @ApiTags('ProcessData')
+  
   @Delete('delete-all')
-  async deleteAllCertificates(): Promise<{ message: string }> {
-    try {
-      await this.certificateModel.deleteMany({});
-      return { message: 'Todos los datos de la colección han sido eliminados.' };
-    } catch (error) {
-      throw new Error('Error al eliminar los datos de la colección.');
-    }
+  @ApiQuery({
+    name: 'clave',
+    description: 'Clave para autorizar la eliminación.',
+    required: true,
+  })
+  async deleteAllCertificates(@Query('clave') clave: string): Promise<{ message: string }> {
+    return await this.certificatesService.deleteAllCertificates(clave);
   }
 }

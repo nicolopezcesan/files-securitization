@@ -3,6 +3,7 @@ import { AwsCognitoService } from './aws-cognito.service';
 import { ApiOperation, ApiBody, ApiTags } from '@nestjs/swagger';
 import { ConfirmRegistrationDTO, LoginDTO, RegisterDTO } from 'src/features/auth/dto/auth.dto';
 
+@ApiTags('Carnet de manipulación de alimentos')
 @Controller('auth')
 export class AuthController {
   constructor(
