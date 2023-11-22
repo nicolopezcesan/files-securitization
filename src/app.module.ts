@@ -15,6 +15,9 @@ import { DatabaseModule } from './configs/database/database.module';
 import { CertificatesModule } from './features/certificates/certificates.module';
 import { ProcessDataModule } from './features/processData/processData.module';
 import { ContractModule } from './features/contract/contract.module';
+import { UserModule } from './features/user/user.module';
+import { BlockchainModule } from './configs/blockchain/blockchain.module';
+import { ReportModule } from './features/report/report.module';
 
 @Module({
   imports: [
@@ -35,6 +38,9 @@ import { ContractModule } from './features/contract/contract.module';
     CertificatesModule,
     ProcessDataModule,
     ContractModule,
+    BlockchainModule,
+    UserModule,
+    ReportModule,
     
   ],
   controllers: [AppController, HealthController],

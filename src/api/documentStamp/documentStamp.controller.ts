@@ -5,13 +5,15 @@ import { DocumentStampService } from './documentStamp.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AccountUnlockService } from 'src/configs/blockchain/blockchain.service';
 import { AuthGuard } from '../auth/auth.guard';
+import { DocumentStampProcessProvider } from './documentStamp-process.provider';
 
 @ApiTags('Carnet de manipulación de alimentos')
-@Controller('')
+@Controller('documentStamp')
 export class DocumentStampController {  
   constructor(    
     private readonly documentStampService: DocumentStampService,
-    private readonly accountUnlockService: AccountUnlockService,    
+    private readonly accountUnlockService: AccountUnlockService, 
+    private readonly documentStampProcessProvider: DocumentStampProcessProvider, 
   ) {}
   
   @Post('document')
@@ -46,11 +48,11 @@ export class DocumentStampController {
   }
 
   @Get(':startDate/:endDate')
-  async documentStamp(
+  async documentStampProcess(
     @Param('startDate') startDate: string,
     @Param('endDate') endDate: string,
   ): Promise<any> {
-    return await this.documentStampService.documentStamp(startDate, endDate);
+    return await this.documentStampProcessProvider.documentStamp(startDate, endDate);
   }
   
   @Get('processFailed')
@@ -63,12 +65,6 @@ export class DocumentStampController {
     return await this.documentStampService.deleteAllDuplicateCertificates();
   }
 
-  // @UseGuards(AuthGuard)
-  @Get('admin/acuse/:hash')
-  @ApiOperation({summary: '.PDF', description: 'Comprobante de operación .INMUTA' })
-  async generateAcuse(@Param('hash') hash: string, @Res() res): Promise<void> {    
-      await this.documentStampService.generateAcuse(hash, res);
-  }
 
 }
 
