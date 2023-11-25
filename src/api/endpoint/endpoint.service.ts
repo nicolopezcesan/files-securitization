@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectModel } from '@nestjs/mongoose';
 import * as crypto from 'crypto';
+import { Model } from 'mongoose';
 import { BlockchainProvider } from 'src/configs/blockchain/blockchain.provider';
+import { User, UserModel } from 'src/features/user/infraestructure/user.interface';
 
 
 @Injectable()
@@ -9,7 +12,8 @@ export class EndpointService {
   private readonly blockchainProvider: BlockchainProvider;
 
   constructor(
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    @InjectModel(UserModel.modelName) private readonly userModel: Model<User>,
     ) {
     this.blockchainProvider = new BlockchainProvider(configService);
   }
@@ -22,10 +26,12 @@ export class EndpointService {
   }
 
   //Guardamos los datos en la Blockchain
-  async storeData(data: any): Promise<string> {
+  async storeData(data: any, apiKey: string): Promise<string> {
     const web3 = this.blockchainProvider.getWeb3Instance();
     const contract = this.blockchainProvider.getContractInstance();
     
+    await this.userModel.updateOne({ apiKey }, { $inc: { registrosProcesados: 1 } });
+
     const jsonData = JSON.stringify(data);
    
     const accounts = await web3.eth.getAccounts();

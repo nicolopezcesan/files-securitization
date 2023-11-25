@@ -10,8 +10,6 @@ import { Certificate, CertificateDocument, CertificateState } from 'src/features
 import { BlockchainProvider } from 'src/configs/blockchain/blockchain.provider';
 import * as path from 'path';
 import axios from 'axios';
-import * as PDFDocument from 'pdfkit'; 
-import * as rp from 'request-promise';
 import { AccountUnlockService } from 'src/configs/blockchain/blockchain.service';
 
 @Injectable()
