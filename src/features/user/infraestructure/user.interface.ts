@@ -19,4 +19,6 @@ export const UserSchema = new Schema<User>(
   }
 );
 
+UserSchema.index({ apiKey: 1 });
+
 export const UserModel = model<User>('User', UserSchema);
