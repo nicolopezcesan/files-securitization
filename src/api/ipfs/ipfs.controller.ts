@@ -12,7 +12,7 @@ export class IpfsController {
   ) { }
 
   @ApiTags('Carnet de manipulación de alimentos')
- // @UseGuards(AuthGuard)
+ @UseGuards(AuthGuard)
   @Post('download/:cid')
   @ApiOperation({ summary: '.PDF', description: 'Obtener el documento en la blockchain' })
     @ApiBearerAuth('bearer')
