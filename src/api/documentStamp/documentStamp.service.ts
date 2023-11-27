@@ -13,6 +13,7 @@ import axios from 'axios';
 import * as PDFDocument from 'pdfkit'; 
 import * as rp from 'request-promise';
 import { AccountUnlockService } from 'src/configs/blockchain/blockchain.service';
+import { User, UserModel } from 'src/features/user/infraestructure/user.interface';
 
 @Injectable()
 export class DocumentStampService {
@@ -26,10 +27,11 @@ export class DocumentStampService {
     @InjectModel(Certificate.name)
     private readonly stampedDocumentModel: Model<Certificate>,
     @InjectModel('Certificate')
-     private readonly certificateModel: Model<CertificateDocument>,    
+     private readonly certificateModel: Model<CertificateDocument>, 
+     @InjectModel(UserModel.modelName) private readonly userModel: Model<User>,   
   ) { }
 
-  async stampDocument({ file, certificado }: { file: Multer.File; certificado: string | null }): Promise<any> {
+  async stampDocument({ file, certificado, apiKey }: { file: Multer.File; certificado: string | null; apiKey: string }): Promise<any> {
     try {
       if (!file) {
         throw new Error('No se proporcionó un archivo.');
@@ -65,6 +67,7 @@ export class DocumentStampService {
 
       // Guardar en Blockchain
       let transactionHash = null;
+      await this.userModel.updateOne({ apiKey }, { $inc: { registrosProcesados: 1 } });
 
       try {
         const dataToStore = {
@@ -214,6 +217,7 @@ export class DocumentStampService {
           buffer: fs.readFileSync(path.join('documentsTemp', fileName)),
         },
         certificado: numeroCertificado,
+        apiKey: null,
       });
 
       this.certificadosProcesados.push(numeroCertificado);
@@ -326,6 +330,7 @@ export class DocumentStampService {
             buffer: fs.readFileSync(path.join('documentsTemp', fileName)),
           },
           certificado: numeroCertificado,
+          apiKey: null,
         });
     
         // Eliminar el archivo temporal

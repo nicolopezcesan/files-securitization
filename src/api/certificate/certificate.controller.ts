@@ -16,7 +16,7 @@ export class CertificateController {
     ) {}
   
    
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Get()
   async findAll(
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -28,7 +28,7 @@ export class CertificateController {
     return response;
   }
 
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Get('count')
   async countByState(): Promise<{ certificates: TCertificateByState[] }> {
     const response = await this.certificatesService.countCertificateByState();
