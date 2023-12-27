@@ -10,13 +10,10 @@ import { Certificate, CertificateDocument, CertificateState } from 'src/features
 import { BlockchainProvider } from 'src/configs/blockchain/blockchain.provider';
 import * as path from 'path';
 import axios from 'axios';
-import * as PDFDocument from 'pdfkit'; 
-import * as rp from 'request-promise';
 import { AccountUnlockService } from 'src/configs/blockchain/blockchain.service';
-import { User, UserModel } from 'src/features/user/infraestructure/user.interface';
 
 @Injectable()
-export class DocumentStampService {
+export class DocumentStampProcessProvider {
   private certificadosProcesados: string[] = [];
   private certificadosErroneos: string[] = []; 
   
@@ -27,11 +24,10 @@ export class DocumentStampService {
     @InjectModel(Certificate.name)
     private readonly stampedDocumentModel: Model<Certificate>,
     @InjectModel('Certificate')
-     private readonly certificateModel: Model<CertificateDocument>, 
-     @InjectModel(UserModel.modelName) private readonly userModel: Model<User>,   
+     private readonly certificateModel: Model<CertificateDocument>,    
   ) { }
 
-  async stampDocument({ file, certificado, apiKey }: { file: Multer.File; certificado: string | null; apiKey: string }): Promise<any> {
+  async stampDocument({ file, certificado }: { file: Multer.File; certificado: string | null }): Promise<any> {
     try {
       if (!file) {
         throw new Error('No se proporcionó un archivo.');
@@ -67,7 +63,6 @@ export class DocumentStampService {
 
       // Guardar en Blockchain
       let transactionHash = null;
-      await this.userModel.updateOne({ apiKey }, { $inc: { registrosProcesados: 1 } });
 
       try {
         const dataToStore = {
@@ -126,48 +121,7 @@ export class DocumentStampService {
   
       return result.transactionHash;
     }
-
-  numberCertificate(file:any){
-     const fileName = file.originalname;
-      const match = fileName.match(/^(.*?)\s+(\d+)/);
-      let certificado: string | null = null; //
-      let nameAndSurname: string | null = null;
-      if (match) {
-        nameAndSurname = match[1];
-        certificado = match[2];
-      } return certificado;
-  }
-
-
-  // Obtener el CID relacionado con la transacción
-  async getDataByTransactionHash(transactionHash: string): Promise<any> {
-    const web3 = this.blockchainProvider.getWeb3Instance();
-    const contract = this.blockchainProvider.getContractInstance();
-    try {
-      const transaction = await web3.eth.getTransaction(transactionHash);
-      if (!transaction || !transaction.input) {
-        throw new Error('Transacción no encontrada o sin entrada.');
-      }
-
-      const inputData = transaction.input;
-      const methodAbi = contract.options.jsonInterface.find(
-        (method: any) => method.type === 'function' && method.signature === inputData.slice(0, 10),
-      );
-
-      if (methodAbi && methodAbi.name === 'set') {
-        const params = web3.eth.abi.decodeParameters(methodAbi.inputs, inputData.slice(10));
-        const cid = params['0']; 
-        return { cid };
-      } else {
-        throw new Error('Transacción no válida para obtener el CID.');
-      }
-    } catch (error) {
-      console.error('Error al obtener el CID por hash de transacción:', error);
-      throw new Error('Error al obtener el CID por hash de transacción.');
-    }
-  }
-
-
+ 
 
   //Verificar Certificados en DB
   async verificarCertificadosEnDB(certificados: string[]): Promise<string[]> {
@@ -217,7 +171,6 @@ export class DocumentStampService {
           buffer: fs.readFileSync(path.join('documentsTemp', fileName)),
         },
         certificado: numeroCertificado,
-        apiKey: null,
       });
 
       this.certificadosProcesados.push(numeroCertificado);
@@ -330,7 +283,6 @@ export class DocumentStampService {
             buffer: fs.readFileSync(path.join('documentsTemp', fileName)),
           },
           certificado: numeroCertificado,
-          apiKey: null,
         });
     
         // Eliminar el archivo temporal
@@ -347,93 +299,44 @@ export class DocumentStampService {
     }
 
 
-
-
-    async deleteAllDuplicateCertificates(): Promise<any> {
-      try {
-        const certificates = await this.certificateModel.find().exec();
-        const uniqueCertificados = [];
-        const duplicates = [];
-  
-        certificates.forEach((certificate) => {
-               
-          const existingCert = uniqueCertificados.find((c) => c.certificado === certificate.certificado);
-  
-          if (existingCert) {
-            const existingCertDate = new Date(existingCert.timestampDate);
-            const certificateDate = new Date(certificate.timestampDate);
-  
-            if (certificateDate < existingCertDate) {
-              duplicates.push(existingCert);
-              uniqueCertificados.splice(uniqueCertificados.indexOf(existingCert), 1);
-              uniqueCertificados.push(certificate);
-            } else {
-              duplicates.push(certificate);
-            }
-          } else {
-            uniqueCertificados.push(certificate);
-          }
-        });
-  
-        if (duplicates.length > 0) {
-          for (const duplicate of duplicates) {
-            await this.certificateModel.findByIdAndDelete(duplicate._id).exec();
-          }
-  
-          return {
-            mensaje: 'Todos los certificados duplicados han sido eliminados',
-            certificadosEliminados: duplicates,
-          };
-        } else {
-          return {
-            mensaje: 'No se encontraron certificados duplicados para eliminar',
-            certificadosEliminados: [],
-          };
-        }
-      } catch (error) {
-        throw error;
-      }
-    }
-
-
     public async processFailedCertificates(): Promise<any> {
-      await this.accountUnlockService.unlockAccount();
-      try {
-        const failedCertificates = await this.certificateModel.find({ status: CertificateState.FAILED }).exec();
-      const processedCertificates = [];
-      const errors = [];
-  
-      for (const certificate of failedCertificates) {
-        if (!processedCertificates.includes(certificate.certificado)) {
-          try {
-            const result = await this.processCertificate(certificate.certificado);
-            if (result.success) {
-              certificate.status = CertificateState.COMPLETED;
-            } else {
-              certificate.status = CertificateState.FAILED;
+        await this.accountUnlockService.unlockAccount();
+        try {
+          const failedCertificates = await this.certificateModel.find({ status: CertificateState.FAILED }).exec();
+        const processedCertificates = [];
+        const errors = [];
+    
+        for (const certificate of failedCertificates) {
+          if (!processedCertificates.includes(certificate.certificado)) {
+            try {
+              const result = await this.processCertificate(certificate.certificado);
+              if (result.success) {
+                certificate.status = CertificateState.COMPLETED;
+              } else {
+                certificate.status = CertificateState.FAILED;
+              }
+              certificate.transactionHash = result.transactionHash;
+              certificate.fileHash = result.fileHash;
+              certificate.timestampHash = result.timestampHash;
+              certificate.nameFile = result.nameFile;
+              certificate.cid = result.cid;
+              await certificate.deleteOne();
+              processedCertificates.push(certificate.certificado);
+            } catch (error) {
+              errors.push({ certificado: certificate.certificado, error: error.message });
             }
-            certificate.transactionHash = result.transactionHash;
-            certificate.fileHash = result.fileHash;
-            certificate.timestampHash = result.timestampHash;
-            certificate.nameFile = result.nameFile;
-            certificate.cid = result.cid;
-            await certificate.deleteOne();
-            processedCertificates.push(certificate.certificado);
-          } catch (error) {
-            errors.push({ certificado: certificate.certificado, error: error.message });
           }
         }
+          return {
+            mensaje: 'Proceso de certificados fallidos completo',
+            certificadosProcesados: processedCertificates,
+            certificadosConErrores: errors,
+            fechaInicio: new Date(),
+            fechaFinal: new Date(),
+          };
+        } catch (error) {
+          throw error;
+        }
       }
-        return {
-          mensaje: 'Proceso de certificados fallidos completo',
-          certificadosProcesados: processedCertificates,
-          certificadosConErrores: errors,
-          fechaInicio: new Date(),
-          fechaFinal: new Date(),
-        };
-      } catch (error) {
-        throw error;
-      }
-    }
 
 }

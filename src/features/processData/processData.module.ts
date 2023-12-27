@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { CertificadosController } from 'src/api/processData/processData.controller';
-import { DocumentStampModule } from '../documentStamp/documentStamp.module';
+import { ProcessDataController } from 'src/api/processData/processData.controller';
+import { ProcessDataService } from 'src/api/processData/processData.service';
 
 @Module({
-  imports: [HttpModule, DocumentStampModule],
-  controllers: [CertificadosController],
+  imports: [HttpModule],
+  controllers: [ProcessDataController],
+  providers: [ProcessDataService],
   
 })
 export class ProcessDataModule {}
