@@ -1,7 +1,3 @@
-<p align="center" style="border-radius:5px">
-  <a  href="http://ayi.group/" target="blank"><img style="padding:8px " src="https://ayi.group/wp-content/uploads/2020/12/ayi-logo-azul.png" width="200" alt="Nest Logo" /></a>
-  <a href="http://nestjs.com/" target="blank"><img style="margin-left:50px" src="https://nestjs.com/img/logo-small.svg" width="50" alt="Nest Logo" /></a>
-</p>
 
 # Instalación
 
